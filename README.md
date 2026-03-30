@@ -46,7 +46,7 @@ The core parts of AProVe consists of <b>problems</b>, <b>processors</b>, <b>stra
 
 ### 🔹 Problems
 
-A **Problem** represents the current state of analysis. E.g., Java programs → `JAVA Problem` or Term rewrite systems → `TRSProblem`
+A **Problem** represents the current state of analysis. E.g., Term rewrite systems → `TRSProblem`
 
 
 ### 🔹 Processors
