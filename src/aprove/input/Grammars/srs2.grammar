@@ -1,0 +1,78 @@
+//
+//   Title:       Exchangeable SRS grammar
+//   Description: A grammar definiton for SRS programs in the exchange-format.
+//   Project:     AProVE
+//   Authors:     Christoph Weidmann
+//   Copyright:   Copyright (c) 2007
+//   Department:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.srs2;
+
+Helpers
+  all = [0x0000 .. 0xffff];
+  new_line = (10|13|10 13);  
+  
+Tokens
+  l_par = '(';
+  r_par = ')';
+  comma = ',';
+  arrow = '->';
+  relarrow = '->=';
+  keywd_rules = 'RULES';
+  keywd_strategy = 'STRATEGY';
+  keywd_leftmost = 'LEFTMOST';
+  keywd_rightmost = 'RIGHTMOST';
+  
+  id = [all - [' ' + [ '(' + [ ')' + [ '"' + [ ',' + [ 9 + [ 10 + 13 ]]]]]]]]+;
+  string = '"' [ all - '"']* '"';
+
+  delimiter = new_line+;
+  blanks = (' ' | 9 )+;
+//  line_comments = new_line*'#' [[0..0xffff]-[10+13]]*;
+//  full_comments = new_line*'~' [[0..0xffff]-'~']*'~';
+
+Ignored Tokens
+ blanks, delimiter;
+// blanks, line_comments, full_comments, delimiter;
+
+Productions
+  spec = specdecl*;
+  specdecl = l_par decl r_par;
+  decl = 
+    {rulesdecl} keywd_rules listofrules |
+    {strategydecl} keywd_strategy strategydecl |
+    {anydecl} id anylist;
+  anylist = 
+    {empty} |
+    {id} id anylist |
+    {string} string anylist |
+    {braces} l_par [head]:anylist r_par [tail]:anylist |
+    {comma} comma anylist |
+    {arrow} arrow anylist |
+    {relarrow} relarrow anylist |
+    {keywd_rules} keywd_rules anylist |
+    {keywd_strategy} keywd_strategy anylist |
+    {keywd_leftmost} keywd_leftmost anylist |
+    {keywd_rightmost} keywd_rightmost anylist ;
+
+  listofrules = 
+    {empty} |
+    {rule} rulecomma* rule comma?;
+    
+  rulecomma = rule comma;
+
+  rule =
+    {normal} [left]:word arrow [right]:word |
+    {empty} word arrow |
+    {relative} [left]:word relarrow [right]:word |
+    {emptyrel} word relarrow ;
+    
+  word =
+    {one} id |
+    {more} id word;
+
+  strategydecl = 
+    {leftmost} keywd_leftmost |
+    {rightmost} keywd_rightmost;

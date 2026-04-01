@@ -1,0 +1,55 @@
+# Competition-Strategy for termination of ITSs.
+# In contrast to the default strategy, it also uses our reimplementation of T2's cooperation graph technique.
+
+main = RunDefaultStrategyForObligation
+
+# =============================================== #
+# ==================== IRSwT ==================== #
+# =============================================== #
+
+irswt = Maybe(IRSwTFormatTransformer):irs
+
+irs = First(
+       Solve(
+        marinasIrsCleanupCrew:
+        Timer(60000,SafetyIntTRSPolynomialOrderProcessor)
+       ),
+       Solve(
+        irsCleanupCrew:
+        irsRedStrategy
+       )
+      )
+
+
+marinasIrsCleanupCrew = Maybe(IntTRSCompressor)
+                       ;Maybe(IntTRSUnneededArgumentFilter)
+
+irsCleanupCrew =  Maybe(IRSwTSimpleDependencyGraph)
+                   ;Maybe(IntTRSCompressor)
+                   ;Maybe(IntTRSUnneededArgumentFilter)
+
+irsRedStrategy =
+                 Solve(
+                   First(
+                     Any(
+                       Timer(5000, irsJointSimple),
+                       Timer(7500, irsJointComplex)
+                     );irs,
+                     Any(
+                       IntTRSTerminationGraphProcessor[UseChaining=True];irs,
+                       IntTRSCaseAnalysis[Mode=DEFAULT];irs
+                     ) # Any
+                   ) # First
+                 ) # Solve
+
+irsJointSimple = Any(
+                      RankingReductionPairProcessor[GenerateFollowingInequalities=False],
+                      IntTRSPolynomialOrderProcessor[Degree=1]
+                    )
+
+irsJointComplex = Any(
+                       RankingReductionPairProcessor[GenerateFollowingInequalities=True],
+                       IntTRSPolynomialOrderProcessor[Degree=2, FactorBinomials=True]
+                     )
+
+irsTransitionInvariantStrategy = Maybe(IntTRSTerminationGraphProcessor[UseChaining=False]):RankingProcessor

@@ -1,0 +1,14 @@
+# ========================================================== #
+# ==================== CURRENT STRATEGY ==================== #
+# ====================  FOR COMMON USE  ==================== #
+# ========================================================== #
+
+main = RunDefaultStrategyForObligation
+
+# =============================================== #
+# ===================== JBC ===================== #
+# =============================================== #
+
+jbc = jbcAbstract
+
+jbcAbstract = JBCToTerminationGraph[FilterUnnecessaryWrites=False, TryNontermProofs=False, TryLoopingNontermProofs=False, TryNonLoopingNontermProofs=False, HandleOverflows=False, UseOnlyAbstractInstances=False];DotDumpProcessor

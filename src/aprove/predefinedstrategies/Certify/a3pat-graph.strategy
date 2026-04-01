@@ -1,0 +1,28 @@
+main = WST07Heuristic
+
+trs = TRSToQTRS:qtrs
+
+qtrs = rrr:QTRSDependencyPairs:workOnDPs
+rrr = Timer(10000, Repeat(0,*,QTRSRRR[Order = PPO[Engine = MINISAT[Version = 2], Quasi = True, Multiset = True, Lex = True, Prec = True, Permute = True, Xgengrc = False, Afstype = NOAFS]]))
+
+workOnDPs = Repeat(0, *, First(QDPDependencyGraph:Maybe(QDPNonSCC), redPair))
+
+
+redPair = First( \
+			    Any( \
+        			Timer(10000, QDPReductionPair[Order = POLO[Engine = MINISAT[Version = 2], Range = 5, Degree = 1], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False]), \
+			        Timer(10000, QDPReductionPair[Order = PPO[Engine = MINISAT[Version = 2], Quasi = True, Multiset = True, Lex = True, Prec = True, Permute = True, Xgengrc = False, Afstype = FULLAFS], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False]), \
+        			Timer(10000, QDPReductionPair[Order = POLO[Engine = MINISAT[Version = 2], Range = 1, Degree = SIMPLE_MIXED], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False]), \
+                    Timer(10000, QDPReductionPair[Order = PMatroNat[Engine = MINISAT[Version = 2], Range = 1, Dimension = 4, Collapse = False], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False]), \
+        			Timer(10000, QDPReductionPair[Order = PMatroNat[Engine = MINISAT[Version = 2], Range = 3, Dimension = 2, Collapse = True], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False])), \
+			    Any( \
+                    QDPReductionPair[Order = KBOPOLO[Engine = YICES], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False], \
+                    QDPReductionPair[Order = PMatroNat[Engine = MINISAT[Version = 2], Range = 3, Dimension = 4, Collapse = False], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False], \
+                    QDPReductionPair[Order = PMatroNat[Engine = MINISAT[Version = 2], Range = 1, Dimension = 5, Collapse = False], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False], \
+                    QDPReductionPair[Order = PMatroNat[Engine = MINISAT[Version = 2], Range = 1, Dimension = 7, Collapse = False], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False], \
+                    QDPReductionPair[Order = PMatroNat[Engine = MINISAT[Version = 2], Range = 7, Dimension = 2, Collapse = False], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False], \
+                    QDPReductionPair[Order = POLO[Engine = MINISAT[Version = 2], Range = 1, Degree = 2], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False], \
+                    QDPReductionPair[Order = POLO[Engine = MINISAT[Version = 2], Range = 3, Degree = SIMPLE_MIXED], Allstrict = False, Usable = False, Active = False, ATrans = False, MergeMutual = False]))
+
+srs = TRSToQTRS:qsrs
+qsrs = qtrs

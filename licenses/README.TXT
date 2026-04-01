@@ -1,0 +1,35 @@
+AProVE uses the following 3rd party libraries:
+
+- ANTLR version 3.1.3 (antlr-3.1.3.jar and antlr-runtime-3.1.3.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/antlr".
+- Apache Commons Codec (commons-codec-1.7.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/commons-codec".
+- Apache Commons Math (commons-math3-3.0.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/commons-math3".
+- GNU getopt - Java port (java-getopt-1.0.14.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/java-getopt".
+- JDOM (jdom-1.1.3.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/jdom".
+- Hamcrest Core (hamcrest-core-1.3.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/hamcrest".
+- JUnit (junit-4.12.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/junit".
+- Mockito Core (mockito-core-1.10.19.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/mockito".
+- Objensis (objenesis-2.1.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/objenesis".
+- OSGi Core (org.osgi.core-6.0.0.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/org.osgi.core".
+- SableCC (sablecc.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/sablecc".
+- Z3 Java API (com.microsoft.z3.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/z3".
+- JSON-java reference implementation (json-b0191a6acf.jar)
+  For licensing details please refer to the files in the subdirectory "licenses/json".
+  Note: this dependency uses the JSON License with a "The Software shall be used for Good, not Evil." restriction.
+- Sat4j
+  For licensing details please refer to the files in the subdirectory "licenses/sat4j".
+- SMTInterpol
+  For licensing details please refer to the files in the subdirectory "licenses/smtinterpol".
+
+Note: AProVE itself is licensed under LGPL 2.1 as stated in the repository root LICENSE file. The files in "licenses/licenses" contain bundled third-party license documents.

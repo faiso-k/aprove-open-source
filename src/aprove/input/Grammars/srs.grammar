@@ -1,0 +1,33 @@
+//
+//   Title:        SRS grammar
+//   Description:  grammar definition for SRS programs
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2003
+//   Authors:      Peter Schneider-Kamp, Stephan Falke
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.srs;
+
+Helpers
+ digit = ['0' .. '9'];
+ letter = [['a' .. 'z'] + ['A' .. 'Z']];
+ specials = ( '@' | '&' | '%' | '/' | '\' | ':' | '-' | '+' | '*' | '.' | '<' | '>' | '=' | '!' | '$' | '?' | '^' );
+ new_line = (10|13|10 13);
+
+Tokens // 
+ arrow = '->';
+ id = (letter | digit | specials | '_' | 39 )+;
+ delimiter = new_line+;
+ blanks = (' ' | 9 )+;
+ line_comments = new_line*'#' [[0..0xffff]-[10+13]]*;
+ full_comments = new_line*'~' [[0..0xffff]-'~']*'~';
+
+Ignored Tokens
+ blanks, line_comments, full_comments, delimiter;
+
+Productions
+ program = rule+;
+ rule = [left]:id arrow [right]:id;

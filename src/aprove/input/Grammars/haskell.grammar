@@ -1,0 +1,447 @@
+//
+//   Title:        Haskell grammar
+//   Description:  grammar definition for Haskell
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2004
+//   Author:       Stephan Swiderski
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.haskell;
+
+Helpers
+  digit = ['0'..'9'];
+  octit = ['0'..'7'];
+  hexit = [[['0'..'9']+['A'..'F']]+['a'..'f']];
+  letter = [[[[[[[[[[[[[[[[[[48..0xffff]-':']-';']-'<']-'=']-'>']-'?']-'@']-91]-92]-93]-94]-96]-'{']-'|']-'}']-'~']+39];
+  lowlet = [['a'..'z']+'_'];
+  uplet  = ['A'..'Z'];
+  oplet = [[[[[[[[[[[[[[[[[[['<'+'>']+'.']+'=']+'>']+'@']+'~']+'-']+'!']+'*']+'/']+'%']+'#']+'&']+'?']+'$']+'+']+'^']+92]+'|'];
+  octp = '0' ('O' | 'o');
+  hexp = '0' ('X' | 'x');
+  colon = ':';
+  dot = '.';
+  exponent = ('e' | 'E') ('-'|'+')? digit+;
+  ascii = '^' (['A'..'Z'] | '@' | '[' |'\' |']' |'^' |'_') |
+           'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | '\' | 34 | 39 | '&' |
+          'NUL'| 'SOH'| 'STX'| 'ETX'| 'EOT'| 'ENQ'| 'ACK'| 'BEL'|
+	  'BS'|  'HT'|  'LF'|  'VT'|  'FF'|  'CR'|  'SO'|  'SI'|
+	  'DLE'| 'DC1'| 'DC2'| 'DC3'| 'DC4'| 'NAK'| 'SYN'| 'ETB'|
+	  'CAN'| 'EM'|  'SUB'| 'ESC'| 'FS'|  'GS'|  'RS'|  'US'|
+	  'SP' |'DEL' ;
+
+States
+  normal,com,startterm,lc,str,chr;
+
+Tokens
+  tab     =  9;
+  
+  {normal -> startterm} startterm_begin = '{-#';
+  {startterm -> normal} startterm_end = '#-}';
+  {startterm} startterm = [[0..0xffff]-'#']+;
+
+  
+  {normal -> com,com -> com,lc -> com} copen = '{-';
+  {com} cclose = '-}';
+  {com} comment = [[[[0..0xffff]-'}']-'{']-'-']* | '-' | '{' | '}';
+
+  {normal, lc -> normal} newline = 10;
+  {normal -> lc} linecomment = '--' oplet*;
+  {lc} lcomment = [[[0..0xffff]-'{']-10]* | '{';
+
+  {normal -> str} stringstart = 34;
+  {str} strchar = '\' (ascii | digit+ | 'o' octit+ | 'x' hexit+ | (' '| 13 | 10 |9)* '\')
+                   |  [[[0..0xffff]-92]-34];
+  {str -> normal} stringend = 34;
+
+  {normal -> chr} charstart = 39;
+  {chr} cchar = '\' (ascii | digit+ | 'o' octit+ | 'x' hexit+)
+                | [[[0..0xffff]-92]-39];
+  {chr -> normal} charend = 39;
+
+  {normal} blanks = (' '| 13)+;
+  {normal} float    = digit+ dot digit+ exponent?;
+  {normal} integer  = digit+ | octp octit+ | hexp hexit+;
+
+// symbol tokens
+  {normal} wopen = '{';
+  {normal} wclose = '}';
+  {normal} wsep = ';';
+
+  {normal} open = '(';
+  {normal} close = ')';
+
+  {normal} lopen = '[';
+  {normal} lclose = ']';
+
+  {normal} comma = ',';
+
+  {normal} larrow  = '<-';
+  {normal} rarrow  = '->';
+  {normal} pipe   = '|';
+  {normal} doublecolon = '::';
+  {normal} dotdot = '..';
+  {normal} darrow = '=>';
+  {normal} backtick = '`';
+  {normal} lambda = '\';
+  {normal} wildcard = '_';
+
+  {normal} equals = '=';
+  {normal} at ='@';
+  {normal} tilde = '~';
+  {normal} minus = '-';
+  {normal} excla = '!';
+
+  {normal} qqconsym = uplet letter* dot colon (oplet | colon)*;
+  {normal} qqvarsym = uplet letter* dot oplet (oplet | colon)*;
+  {normal} qqconid = uplet letter* dot uplet letter*;
+  {normal} qqvarid = uplet letter* dot lowlet letter*;
+
+  //keywords
+  {normal} kwterm  = 0;
+  {normal} kwcase  = 'case';
+  {normal} kwclass = 'class';
+  {normal} kwdata  = 'data';
+  {normal} kwdefault = 'default';
+  {normal} kwderiving = 'deriving';
+  {normal} kwdo = 'do';
+  {normal} kwelse = 'else';
+  {normal} kwhiding = 'hiding';
+  {normal} kwif = 'if';
+  {normal} kwimport = 'import';
+  {normal} kwinfix = 'infix';
+  {normal} kwinfixl = 'infixl';
+  {normal} kwinfixr = 'infixr';
+  {normal} kwin = 'in';
+  {normal} kwinstance = 'instance';
+  {normal} kwlet = 'let';
+  {normal} kwmodule = 'module';
+  {normal} kwmainmodule = 'mainModule';
+  {normal} kwnewtype = 'newtype';
+  {normal} kwof = 'of';
+  {normal} kwthen = 'then';
+  {normal} kwtype = 'type';
+  {normal} kwwhere = 'where';
+  {normal} kwqualified = 'qualified';
+  {normal} conid = uplet letter*;
+  {normal} varid = lowlet letter*;
+  {normal} varsympre = oplet (oplet | colon)*;
+  {normal} consym = colon (oplet | colon)*;
+
+//Ignored Tokens
+
+Productions
+  // module  -----------------------------------------------------------------------
+  
+  modules = {terms}term+ |
+            {one} onemodule |
+            {some} kwmainmodule conid module+;
+  
+  module  = kwmodule conid exports? kwwhere body;                //done
+  
+  onemodule = {unnamed} body |
+              {named} module; 
+  
+  term    = kwterm varlist? exp;           
+                                            
+  varlist = {some}  wopen varcomma* var wclose | 
+            {empty} wopen wclose; 
+
+
+  // exports -----------------------------------------------------------------------
+  exports = {empty} open close |                                        //done
+            {some} open exportcomma* export close;                      //done
+
+  exportcomma = export comma;                                           //done implicit
+
+  export = {var} qvar |                                                 //done
+           {con} qcon qcnames? |                                        //done
+           {module} kwmodule conid;                                     //done
+
+  // imports -----------------------------------------------------------------------
+  impdecl = kwimport kwqualified? conid kwasconid? impspec?;            //done
+  kwasconid  = varid conid;                                             //done
+
+
+  impspec = {empty} kwhiding? open close |                              //done
+            {some} kwhiding? open importcomma*  import close;           //done
+
+  importcomma = import comma;                                           //done implicit
+
+  import = {var} var |                                                  //done
+           {con} con qcnames?;                                          //done
+
+  qcnames = {empty} open close |                                        //done
+            {all}   open dotdot close |                                 //done
+            {some}  open qcnamecomma* qcname close;                     //done
+
+  qcnamecomma = qcname comma;                                           //done implicit
+
+  qcname = {var} qvar |                                                 //done
+           {con} qcon;                                                  //done
+
+
+  // body --------------------------------------------------------------------------
+
+  body = {empty} wopen wsep? wclose |                                   //done
+         {somei} wopen impdeclwsep* impdecl wsep? wclose |              //done
+         {some}  wopen impdeclwsep* topdeclwsep* topdecl wsep? wclose;  //done
+
+  impdeclwsep = impdecl wsep;                                           //done implicit
+  topdeclwsep = topdecl wsep;                                           //done implicit
+
+  // topdecl -----------------------------------------------------------------------
+
+
+  topdecl = {type} kwtype btype equals type |                               //done
+            {data} kwdata context? btype equals constrs deriving? |         //done
+            {newtype} kwnewtype context? btype equals newconstr deriving? | //done
+            {class} kwclass context? btype wherecdecls? |                   //done
+            {instance} kwinstance context? btype whereidecls? |             //done
+            {default} kwdefault typetuple |                                 //done
+            {decl} decl;                                                    //done implicit
+
+  deriving = {one} kwderiving qconid |                                      //done
+             {some} kwderiving open qconidcomma* qconid close ;             //done
+
+  qconidcomma = qconid comma;                                               //done implicit
+
+
+
+  // where's  -----------------------------------------------------------------------
+  wheredecls = kwwhere decls;                                               //done
+  wherecdecls = kwwhere decls;                                              //done implicit
+  whereidecls = kwwhere decls;                                              //done implicit
+
+  // decls -----------------------------------------------------------------------
+  decls = {empty} wopen wsep? wclose |                                      //done
+          {some}  wopen declwsep* decl wsep? wclose;                        //done
+
+  declwsep = decl wsep;                                                     //done implicit
+
+  decl = {sig} varcomma+ var typed |                                        //done
+         {fixity} fixity integer? ops |                                     //done
+         {func} exp0b rhs |                                                 //done
+         {exp} exp;                                                         //done
+
+
+  ops = opcomma* op;                                                        //done
+  opcomma = op comma;                                                       //done implicit
+
+  varcomma = var comma;                                                     //done implicit
+
+  fixity = {l} kwinfixl |                                                   //done
+           {r} kwinfixr |                                                   //done
+           {n} kwinfix;                                                     //done
+
+  rhs = {direct} equals exp wheredecls? |                                   //done
+        {conds} gdrhs+ wheredecls?;                                         //done
+
+  gdrhs = pipe exp0 equals exp;                                             //done implicit
+
+
+  // expression -----------------------------------------------------------------------
+  lambdapats = aexp+;                                                        //done implicit
+
+  exptail = {lambda} lambda lambdapats rarrow [val]:exp0 |                  //done
+            {let} kwlet decls kwin exp0 |                                   //done
+            {if}  kwif [cond]:exp kwthen [then]:exp kwelse [else]:exp0 |    //done
+            {exp} bexp;                                                     //done implicit
+
+  exp = exp0 typed?;                             // done
+
+  exp0 =  bexpqop* exptail;                      // done implicit
+  exp0b = bexpqop* bexp;                         // done
+
+  bexpqop = bexp qop;                            // done implicit
+
+  bexp =  {case} kwcase exp kwof alts |          // done
+          {do} kwdo stmts |                      // done
+          {func} fexp|                           // done
+          {minus} minus bexp ;                   // done
+
+  typed = doublecolon ctype;                     // done implicit
+
+  fexp = aexp+;                                  // done
+
+  aexp  = {at} qvar at aexp |                    // done
+          {irr} tilde aexp |                     // done
+          {norm}  aexp1;                         // done implicit
+
+  aexp1 =  {fbinds} aexp1 fbinds |
+           {norm}   aexp2;                       // done implicit
+
+  aexp2 = {var} qvar |                           // done
+          {con} gcon |                           // done
+          {lit} literal |                        // done
+          {wild} wildcard |                      // done
+          {leftapply} open qopm exp close |      // done
+          {rightapply} open exp0b qop close |    // done
+          {empty} open close |                   // done
+          {tuple} open exp commaexp+ close |     // done
+          {multi} open exp close |               // done implicit
+          {list} lopen list lclose;              // done
+
+  commaexp = comma exp;                          // done implicit
+
+  list  =  {single} exp |                                              // done
+           {some}   exp commaexp+ |                                    // done
+           {arith}  [start]:exp [step]:commaexp? dotdot [end]:exp? |   // done
+           {comp}   exp pipe qualcomma* qual;                          // done
+
+  // case alternatives -------------------------------------------------------------------
+  alts = wopen altwsep* alt wsep? wclose;       // done implicit
+
+  altwsep = alt wsep;                           // done implicit
+
+  altpat = exp0b;                               // done implicit
+
+  alt = {direct} altpat rarrow exp wheredecls? |   // done
+        {cond}   altpat gdpat+ wheredecls?;        // done
+
+  gdpat = pipe exp0b rarrow exp;                   // done
+
+  // do stmts -----------------------------------------------------------------------------
+
+  stmts = wopen stmtwsep* qual wsep? wclose;      //done implicit
+
+  stmtwsep = qual wsep;                           //done implicit
+
+  // qualifier
+  qualcomma = qual comma;                           //done implicit
+
+  qual = {gen} altpat larrow exp |                  //done
+         {guard} exp |                              //done
+         {let} kwlet decls;                         //done
+
+  //countexp = comma exp;
+
+  fbinds = {empty} wopen wclose |                  //done implicit
+          {some} wopen fbindcomma* fbind wclose;   //done implicit
+
+  fbindcomma = fbind comma; // done implicit
+  fbind = qvar equals exp;  // done
+
+  literal = {char} char |            // done
+            {string} string |        // done
+            {float} float |
+            {integer} integer;       // done
+
+
+  // constructors ------------------------------------------------------------------
+  gcon = {emptylist}  lopen lclose |         // done
+         {tuple}      open comma+ close |    // done
+         {build}      qcon ;                 // done implicit
+
+  con  = {id}conid |                // done
+         {op}open consym close;     // done
+
+  qcon = {id}qconid |               // done
+         {op}open qconsym close;    // done
+
+  conop = {sym} consym |                            // done
+          {bt}  [a]:backtick conid [b]:backtick;    // done
+
+  qconop = {sym} qconsym |                          // done
+           {bt}  [a]:backtick qconid [b]:backtick;  // done
+
+  qconid = {unqual} conid |         // done
+           {qual} qqconid;          // done
+
+  qconsym = {unqual} consym |       // done
+            {qual} qqconsym;        // done
+
+  // variables ---------------------------------------------------------------------
+  var  = {id} varid |               // done
+         {op} open varsym close;    // done
+
+  qvar = {id} qvarid |              // done
+         {op} open qvarsym close;   // done
+
+
+  varop = {sym} varsym |                            // done
+          {bt}  [a]:backtick varid [b]:backtick;    // done
+
+  qvarop = {sym} qvarsym |                          // done
+           {bt}  [a]:backtick qvarid [b]:backtick;  // done
+
+  qvaropm = {sym} qvarsymm |                        // done
+           {bt}  [a]:backtick qvarid [b]:backtick;  // done
+
+  qvarid = {unqual} varid |       // done
+           {qual} qqvarid;        // done
+
+  varsym  = {normal} varsympre |  // done
+            {excla} excla |       // done
+            {minus} minus;        // done
+
+  varsymm  = {normal} varsympre | // done
+             {excla} excla ;      // done
+
+  qvarsym = {unqual} varsym |     // done
+            {qual} qqvarsym;      // done
+
+  qvarsymm = {unqual} varsymm |   // done
+            {qual} qqvarsym;      // done
+
+  // operators ----------------------------------------------------------------------
+  op = {var} varop |            // done
+       {con} conop;             // done
+
+  qop = {qvar} qvarop |         // done
+        {qcon} qconop;          // done
+
+  qopm = {qvar} qvaropm |       // done
+         {qcon} qconop;         // done
+
+  // types -------------------------------------------------------------------------------
+  ctype = context? type;                                //done
+
+  context = btype darrow;                               //done
+
+  typetuple = {empty} open close |                      //done
+              {some} open typecomma* type close;        //done
+
+  typecomma = type comma;                               //done
+
+  type = btyperarrow* btype;                            //done
+  btyperarrow = btype rarrow;                           //done
+
+  btype = satype+;                                      //done
+
+
+  satype  =  excla? atype;                              //!!!!!!!!!!!!!!!
+
+  atype = {con} gtycon |                                //done
+          {var} var  |                                  //done
+          {tuple} typetuple |                           //done
+          {list} lopen type lclose ;                    //done
+
+  gtycon = {norm}  gcon |                               //done
+           {func}  open rarrow close;                   //done
+
+  constrs = constrpipe* constr;                         //done implicit
+
+  constrpipe = constr pipe;                             //done implicit
+
+  constr = {prefix} btype |                                             //done
+           {infix} [a]:btype conop [b]:btype |                          //done
+           {field} con fielddecls;                                      //!!!!!!!!!!!!!!!
+
+  newconstr = {prefix} con atype |                                      //done
+              {field}  con wopen var doublecolon type wsep? wclose;     //!!!!!!!!!!!!!!!
+
+
+  fielddecls = {empty} wopen wclose |                                   //!!!!!!!!!!!!!!!
+               {some}  wopen fielddeclcomma* fielddecl wclose ;         //!!!!!!!!!!!!!!!
+
+  fielddeclcomma = fielddecl comma;                                     //!!!!!!!!!!!!!!!
+
+  fielddecl = var doublecolon type;                                     //!!!!!!!!!!!!!!!
+
+  string = stringstart strchar* stringend; // done
+  char = charstart cchar charend;          // done
+
+

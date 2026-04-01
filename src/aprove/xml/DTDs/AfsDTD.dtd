@@ -1,0 +1,21 @@
+<!ENTITY % rule SYSTEM "RuleDTD.dtd">
+
+%rule;
+
+<!ELEMENT AFS (Map, Unfinished, Rules)>
+
+<!ATTLIST AFS trivial (yes|no) "no">
+
+<!ELEMENT Map (MapEntry*)>
+
+<!ELEMENT MapEntry (Key, Value)>
+
+<!ELEMENT Key (Defsym|Conssym|Tuplesym)>
+
+<!ELEMENT Value (Int)>
+
+<!ELEMENT Int (#PCDATA)>
+
+<!ELEMENT Unfinished ((Defsym|Conssym|Tuplesym)*)>
+
+<!ELEMENT Rules (Rule*)>

@@ -1,0 +1,163 @@
+//
+//   Title:        SIMPLIFY grammar
+//   Description:  grammar definition for a simplify formula set (including Z3 extension)
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2008
+//   Authors:      Andreas Kelle-Emden
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.simplify;
+
+// Still to go:
+//  ORDER
+//  DEFTYPE
+//  (DEFOP)
+
+
+
+Tokens
+
+ open = '(';
+ close = ')';
+ number = '-'? ['0' .. '9']+;
+ blanks = (' ' | 9 | 10 | 13 )+;
+ line_comments = ';' [[0..0xffff]-[10+13]]*(10|13|10 13)?;
+ bgpush = 'BG_PUSH';
+ bgpop  = 'BG_POP';
+ logand = 'AND';
+ logor  = 'OR';
+ lognot = 'NOT';
+ implies = 'IMPLIES';
+ iff     = 'IFF';
+ forall  = 'FORALL';
+ exists  = 'EXISTS';
+ proof   = 'PROOF';
+ lbl    = 'LBL';
+ lblpos = 'LBLPOS';
+ lblneg = 'LBLNEG';
+ cmpeq     = 'EQ';
+ cmpneq    = 'NEQ';
+ cmpless   = '<';
+ cmpgrt    = '>';
+ cmplesseq = '<=';
+ cmpgrteq  = '>=';
+ cmpdist   = 'DISTINCT';
+ truenormal  = '@true';
+ falsenormal = '@false';
+ defpred    = 'DEFPRED';
+ lemma      = 'LEMMA';
+ store  = 'store';
+ select = 'select';
+ plus  = '+';
+ minus = '-';
+ times = '*';
+ qid     = 'QID';
+ skolem  = 'SKOLEMID';
+ pats    = 'PATS';
+ nopats  = 'NOPATS';
+ mpat    = 'MPAT';
+ promote = 'PROMOTE';
+ let          = 'LET';
+ formulatoken = 'FORMULA';
+ termtoken    = 'TERM';
+ defvalue   = 'DEFVALUE';
+ ifthenelse = 'ITE';
+ 
+ ignoredefop    = 'DEFOP';
+ ignoreorder    = 'ORDER';
+ ignoredeftype  = 'DEFTYPE';
+ ignoresetparam = 'SETPARAMETER';
+
+ var = [[0..0xffff]-[[[[[' '+9]+10]+13]+'(']+')']]+;
+ 
+  
+Ignored Tokens
+ blanks, line_comments;
+
+Productions
+ formulaset =
+   {fos_formulas} formula*;
+ 
+ formula = 
+   {fo_defpred} [bop1]:open defpred [bop2]:open [func]:var [args]:varset [bcl2]:close [body]:formula [bcl1]:close |
+   {fo_and} open logand formula* close |
+   {fo_or}  open logor  formula* close |
+   {fo_not} open lognot formula  close |
+   {fo_implies} open implies [left]:formula [right]:formula close |
+   {fo_iff}     open iff     [left]:formula [right]:formula close |
+   {fo_forall}  [bop1]:open forall [bop2]:open varset [bcl2]:close special* formula [bcl1]:close |
+   {fo_exists}  [bop1]:open exists [bop2]:open varset [bcl2]:close special* formula [bcl1]:close |
+   {fo_proof}   open proof formula* close |
+   {fo_lemma}   open lemma formula* close |
+   {fo_background_push} open bgpush formula close|
+   {fo_background_pop}  open bgpop close |
+   {fo_let} [bop1]:open let [bop2]:open form_or_term+ [bcl2]:close formula [bcl1]:close |
+   {fo_defvalue} open defvalue var close |
+   {fo_ifthenelse} open ifthenelse [cond]:formula [then]:formula [else]:formula close |
+   {fo_literal} literal;
+ 
+ form_or_term =
+   {fot_term}    open termtoken    var literal close |
+   {fot_formula} open formulatoken var formula close;
+   
+ literal =
+   {li_label}    open lbl    var literal close |
+   {li_labelpos} open lblpos var literal close |
+   {li_labelneg} open lblneg var literal close |
+   {li_equal}        open cmpeq     [left]:term [right]:term close |
+   {li_notequal}     open cmpneq    [left]:term [right]:term close |
+   {li_less}         open cmpless   [left]:term [right]:term close |
+   {li_lessequal}    open cmplesseq [left]:term [right]:term close |
+   {li_greater}      open cmpgrt    [left]:term [right]:term close |
+   {li_greaterequal} open cmpgrteq  [left]:term [right]:term close |
+   {li_distinct}     open cmpdist   [left]:term [right]:term+ close |
+   {li_true}    truenormal |
+   {li_false}   falsenormal |
+   {li_term}    term;
+ 
+ special =
+   {sp_qid_var} open qid var close |
+   {sp_qid_num} open qid number close |
+   {sp_skolem_var} open skolem var close |
+   {sp_skolem_num} open skolem number close |
+   {sp_pats}   open pats patterns close |
+   {sp_nopats} open nopats term close;
+   
+ patterns =
+   {pat_mpat}    open mpat term* close |
+   {pat_promote} promote |
+   {pat_pattern} term*;
+    
+ 
+ term =
+   ignoreme |
+   {t_number} number |
+   {t_var} var |
+   {t_store}  open store [list]:term [pos]:term [elem]:term close |
+   {t_select} open select [list]:term [pos]:term [elem]:term close |
+   {t_plus}  open plus  [left]:term [right]:term close |
+   {t_minus} open minus [left]:term [right]:term close |
+   {t_times} open times [left]:term [right]:term close |
+   {t_functapp} open var term* close;
+
+ varset = {varset} var*;
+  
+ ignoreme =
+   {ig_defop}    igdefop |
+   {ig_order}    igorder |
+   {ig_deftype}  igdeftype |
+   {ig_setparam} igsetparam;
+      
+ igdefop    = open ignoredefop    ignore* close;
+ igorder    = open ignoreorder    ignore* close;
+ igdeftype  = open ignoredeftype  ignore* close;
+ igsetparam = open ignoresetparam ignore* close;
+ 
+ ignore =
+   {ign_bracket} open ignore* close |
+   {ign_num}     number |
+   {ign_var}     var;
+   

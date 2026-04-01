@@ -1,0 +1,342 @@
+
+//   Title:        IDPProblem grammar
+//   Description:  grammar definition for a IDPProblem
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2008
+//   Authors:      Lars Noschinski
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+// A simple idp looks like this:
+//
+// (OPTIONS
+//    default_int_suffix "z"
+// )
+// (VAR x y)
+// (RULES
+//    f(x, y) -> y | x > 0
+//    g(x) -> x | x > 0 && !(y > 0 || 3 < 2)
+// )
+// (PAIRS
+//    f(x) -> g(x) | 0 = 0
+// )
+//
+//
+// Note: The CST -> AST transformation used in this grammar is not yet
+// described in the sablecc documentation. I got informations about it
+// from http://nat.truemesh.com/archives/000531.html
+
+Package aprove.input.Generated.idp;
+
+Helpers
+ letter = ['a'..'z'] | ['A'..'Z'];
+ digit = ['0'..'9'];
+ id_first = letter | '$' | '_';
+ id_later = '_' | id_first | digit | ''' | '.';
+
+ // 0xffff is not a valid unicode character
+ input_char = [[0..0xfffe] - [10 + 13]];
+ hexdigit = ['0'..'9'] | ['a'..'f'] | ['A'..'F'];
+ escape_sequence =  '\"' | '\\' | '\u' hexdigit hexdigit hexdigit hexdigit;
+ escaped_name_char = [input_char - ['"' + '\']] | escape_sequence;
+ escaped_name = '"' escaped_name_char+ '"';
+
+Tokens
+ open = '(';
+ close = ')';
+ comma = ',';
+ condsep = ':|:';
+ opencond = '[';
+ closecond = ']';
+ pid = 'PAIRS';
+ rid = 'RULES';
+ vid = 'VAR';
+ stid = 'STARTTERM';
+ functionsymbolsid = 'FUNCTIONSYMBOLS';
+ goalid = 'GOAL';
+ constructorbased = 'CONSTRUCTOR-BASED';
+ full = 'FULL';
+ automaton = 'AUTOMATON';
+ termination = 'TERMINATION';
+ complexity = 'COMPLEXITY';
+ rightarrow = '->';
+ true = 'TRUE';
+ false = 'FALSE';
+ // Relation symbols
+ rel_lt = '<';
+ rel_le = '<=';
+ rel_eq = '=';
+ rel_neq = '!=';
+ rel_ge = '>=';
+ rel_gt = '>';
+ // Bitwise operation symbols
+ op_bwnot = '~';
+ op_bwand = '&';
+ op_bwor = '|';
+ op_bwxor = '^';
+ // Logical operation symbols
+ op_lnot = '!';
+ op_land = '&&' | '/\';
+ op_lor =  '||' | '\/';
+ // Arithmetic operation symbols
+ op_plus = '+';
+ op_minus = '-';
+ op_star = '*';
+ op_div = '/';
+ op_mod = '%';
+ blanks = (' ' | 9 | 10 | 13)+;
+ line_comments = '#' [[0..0xffff]-[10+13]]* (10|13|10 13)?;
+ suffix_data = '@' (digit | letter)+;
+ cast = 'cast';
+ int = digit+;
+ name = id_first id_later* | escaped_name;
+
+Ignored Tokens
+ blanks, line_comments;
+
+Productions
+    dpproblem {-> dpproblem}
+        = decl*;
+    decl {-> decl}
+        = {pdecl} p {-> New decl.pairs(p.pairs)}
+        | {rdecl} r {-> New decl.rules(r.rules)}
+        | {vdecl} v {-> New decl.varlist(v.varlist)}
+        | {stdecl} st {-> New decl.startterm(st.startterm)}
+        | {goaldecl} g {-> New decl.goal(g.goal)};
+    p {-> pairs}
+        = open pid rules close {-> New pairs([rules.rule])};
+    r {-> rules}
+        = open rid rules close {-> New rules([rules.rule])};
+    v {-> varlist}
+        = open vid varlist close {-> varlist};
+    st {-> startterm}
+        = open stid startterm close {-> startterm};
+    g {-> goal}
+        = open goalid goal close {-> goal};
+
+    startterm {-> startterm}
+        = {constructorbased} constructorbased
+        | {full} full
+        | {automaton} automaton
+        | {functionsymbols} open functionsymbolsid idlist close {-> New startterm.functionsymbols(idlist)};
+        
+    goal {-> goal}
+        = {complexity} complexity
+        | {termination} termination;
+        
+    varlist {-> varlist} = var* {-> New varlist([var])};
+    var {-> var} = name {-> New var(name)};
+
+    idlist {-> idlist} = var* {-> New idlist([var])};
+
+    bool = {true} true
+         | {false} false;
+
+    suffix {-> suffix}
+        = {empty} {-> New suffix(Null)}
+        | {data} suffix_data {-> New suffix(suffix_data)};
+
+    rules {-> rule*}
+        = rule* {-> [rule]};
+    rule {-> rule}
+        = {justrule} lhs rightarrow rhs {-> New rule.uncond(lhs.expr, rhs.expr)}
+        | {condrule} lhs rightarrow rhs condsep cond {-> New rule.cond(lhs.expr, rhs.expr, cond.expr)}
+        | {koatcondrule} lhs rightarrow rhs opencond cond closecond {-> New rule.cond(lhs.expr, rhs.expr, cond.expr)};
+
+    lhs {-> expr}
+        = {var} var {-> New expr.atom(New atom.var(var))}
+        | {funcapp} var open lhs_terms close
+                {-> New expr.funcapp(New atom.var(var), [lhs_terms.expr])};
+    lhs_terms {-> expr*}
+        = {empty} {-> []}
+        | {notempty} lhs_termcomma* lhs_term {-> [lhs_termcomma.expr, lhs_term.expr]};
+    lhs_termcomma {-> expr}
+        = lhs_term comma {-> lhs_term.expr};
+    lhs_term {->expr}
+         = {var} var {-> New expr.atom(New atom.var(var))}
+         | {int} int suffix {-> New expr.atom(New atom.int(int, suffix))}
+         | {bool} bool {-> New expr.atom(New atom.bool(bool))}
+         | {funcapp} var open lhs_terms close {-> New expr.funcapp(New atom.var(var), [lhs_terms.expr])};
+
+    rhs {-> expr}
+        = rhs_term {-> rhs_term.expr};
+    rhs_terms {-> expr*}
+        = {empty} {-> []}
+        | {notempty} rhs_termcomma* rhs_term {-> [rhs_termcomma.expr, rhs_term.expr]};
+    rhs_termcomma {-> expr}
+        = rhs_term comma {-> rhs_term.expr};
+    rhs_term {-> expr}
+        = rhs_p0 {-> rhs_p0.expr};
+
+// Precendence rules:
+// 9: (expr) left-to-right
+// 8: !, - (unary) right-to-left
+// 7: *,/,% left-to-right
+// 6: +, - left-to-right
+// 5: <,<=,=,>=,> left-to-right
+// 4: | left-to-right
+// 3: ^ left-to-right
+// 2: & left-to-right
+// 1: || left-to-right
+// 0: && left-to-right
+//
+// FIXME: |,^,& would make more sense with a higher priority than the relations
+// but maybe this order is more sensible, as it resembles the java operator
+// precedence rules
+
+    op_p0 {-> atom}
+        = {lor} op_lor {-> New atom.lor()};
+    op_p1 {-> atom}
+        = {land} op_land {-> New atom.land()};
+    op_p2 {-> atom}
+        = {bwor} op_bwor {-> New atom.bwor()};
+    op_p3 {-> atom}
+        = {bwxor} op_bwxor {-> New atom.bwxor()};
+    op_p4 {-> atom}
+        = {bwand} op_bwand {-> New atom.bwand()};
+    op_p5 {-> atom}
+        = {lt} rel_lt suffix {-> New atom.lt(suffix)}
+        | {le} rel_le suffix {-> New atom.le(suffix)}
+        | {eq} rel_eq suffix {-> New atom.eq(suffix)}
+        | {neq} rel_neq suffix {-> New atom.neq(suffix)}
+        | {ge} rel_ge suffix {-> New atom.ge(suffix)}
+        | {gt} rel_gt suffix {-> New atom.gt(suffix)};
+    op_p6 {-> atom}
+        = {plus} op_plus suffix {-> New atom.plus(suffix)}
+        | {minus} op_minus suffix {-> New atom.minus(suffix)};
+    op_p7 {-> atom}
+        = {star} op_star suffix {-> New atom.star(suffix)}
+        | {div} op_div suffix {-> New atom.div(suffix)}
+        | {mod} op_mod suffix {-> New atom.mod(suffix)};
+    op_p8 {-> atom}
+        = {lnot} op_lnot {-> New atom.lnot()}
+        | {bwnot} op_bwnot {-> New atom.bwnot()}
+        | {minus} op_minus suffix {-> New atom.unary_minus(suffix)};
+
+    rhs_p0 {-> expr}
+        = {p1} rhs_p1 {-> rhs_p1.expr}
+        | {p0} rhs_p0 op_p0 rhs_p1 {-> New expr.funcapp(op_p0.atom, [rhs_p0.expr, rhs_p1.expr])};
+    rhs_p1 {-> expr}
+        = {p2} rhs_p2 {-> rhs_p2.expr}
+        | {p1} rhs_p1 op_p1 rhs_p2 {-> New expr.funcapp(op_p1.atom, [rhs_p1.expr, rhs_p2.expr])};
+    rhs_p2 {-> expr}
+        = {p3} rhs_p3 {-> rhs_p3.expr}
+        | {p2} rhs_p2 op_p2 rhs_p3 {-> New expr.funcapp(op_p2.atom, [rhs_p2.expr, rhs_p3.expr])};
+    rhs_p3 {-> expr}
+        = {p5} rhs_p5 {-> rhs_p5.expr}
+        | {p3} rhs_p3 op_p3 rhs_p5 {-> New expr.funcapp(op_p3.atom, [rhs_p3.expr, rhs_p5.expr])};
+    rhs_p4 {-> expr}
+        = {p5} rhs_p5 {-> rhs_p5.expr}
+        | {p4} rhs_p4 op_p4 rhs_p5 {-> New expr.funcapp(op_p4.atom, [rhs_p4.expr, rhs_p5.expr])};
+    rhs_p5 {-> expr}
+        = {p6} rhs_p6 {-> rhs_p6.expr}
+        | {p5} rhs_p5 op_p5 rhs_p6 {-> New expr.funcapp(op_p5.atom, [rhs_p5.expr, rhs_p6.expr])};
+    rhs_p6 {-> expr}
+        = {p7} rhs_p7 {-> rhs_p7.expr}
+        | {p6} rhs_p6 op_p6 rhs_p7 {-> New expr.funcapp(op_p6.atom, [rhs_p6.expr, rhs_p7.expr])};
+    rhs_p7 {-> expr}
+        = {p8} rhs_p8 {-> rhs_p8.expr}
+        | {p7} rhs_p7 op_p7 rhs_p8 {-> New expr.funcapp(op_p7.atom, [rhs_p7.expr, rhs_p8.expr])};
+    rhs_p8 {-> expr}
+        = {p9} rhs_p9 {-> rhs_p9.expr}
+        | {p8} op_p8 rhs_p8 {-> New expr.funcapp(op_p8.atom, [rhs_p8.expr])};
+    rhs_p9 {-> expr}
+        = {paren} open rhs_p0 close {-> rhs_p0.expr}
+        | {var} var {-> New expr.atom(New atom.var(var))}
+        | {int} int suffix {-> New expr.atom(New atom.int(int, suffix))}
+        | {bool} bool {-> New expr.atom(New atom.bool(bool))}
+        | {cast} cast [from]:suffix [to]:suffix open rhs_term close
+                {-> New expr.funcapp(New atom.cast(from, to), [rhs_term.expr])}
+        | {funcapp} var open rhs_terms close {-> New expr.funcapp(New atom.var(var), [rhs_terms.expr])};
+
+    cond {-> expr} =
+        cond_p0 {-> cond_p0.expr};
+    cond_p0 {-> expr}
+        = {p1} cond_p1 {-> cond_p1.expr}
+        | {p0} cond_p0 op_p0 cond_p1 {-> New expr.funcapp(op_p0.atom, [cond_p0.expr, cond_p1.expr])};
+    cond_p1 {-> expr}
+        = {p2} cond_p2 {-> cond_p2.expr}
+        | {p1} cond_p1 op_p1 cond_p2 {-> New expr.funcapp(op_p1.atom, [cond_p1.expr, cond_p2.expr])};
+    cond_p2 {-> expr}
+        = {p3} cond_p3 {-> cond_p3.expr}
+        | {p2} cond_p2 op_p2 cond_p3 {-> New expr.funcapp(op_p2.atom, [cond_p2.expr, cond_p3.expr])};
+    cond_p3 {-> expr}
+        = {p4} cond_p4 {-> cond_p4.expr}
+        | {p3} cond_p3 op_p3 cond_p4 {-> New expr.funcapp(op_p3.atom, [cond_p3.expr, cond_p4.expr])};
+    cond_p4 {-> expr}
+        = {p5} cond_p5 {-> cond_p5.expr}
+        | {p4} cond_p4 op_p4 cond_p5 {-> New expr.funcapp(op_p4.atom, [cond_p4.expr, cond_p5.expr])};
+    cond_p5 {-> expr}
+        = {p6} cond_p6 {-> cond_p6.expr}
+        | {p5} cond_p5 op_p5 cond_p6 {-> New expr.funcapp(op_p5.atom, [cond_p5.expr, cond_p6.expr])};
+    cond_p6 {-> expr}
+        = {p7} cond_p7 {-> cond_p7.expr}
+        | {p6} cond_p6 op_p6 cond_p7 {-> New expr.funcapp(op_p6.atom, [cond_p6.expr, cond_p7.expr])};
+    cond_p7 {-> expr}
+        = {p8} cond_p8 {-> cond_p8.expr}
+        | {p7} cond_p7 op_p7 cond_p8 {-> New expr.funcapp(op_p7.atom, [cond_p7.expr, cond_p8.expr])};
+    cond_p8 {-> expr}
+        = {p9} cond_p9 {-> cond_p9.expr}
+        | {p8} op_p8 cond_p8 {-> New expr.funcapp(op_p8.atom, [cond_p8.expr])};
+    cond_p9 {-> expr}
+        = {paren} open cond_p0 close {-> cond_p0.expr}
+        | {var} var {-> New expr.atom(New atom.var(var))}
+        | {int} int suffix {-> New expr.atom(New atom.int(int, suffix))}
+        | {bool} bool {-> New expr.atom(New atom.bool(bool))}
+        | {cast} cast [from]:suffix [to]:suffix open cond close
+                {-> New expr.funcapp(New atom.cast(from, to), [cond.expr])}
+        ;
+
+Abstract Syntax Tree
+
+    dpproblem = decl*;
+    decl = {rules} rules
+        | {pairs} pairs
+        | {varlist} varlist
+        | {startterm} startterm
+        | {goal} goal;
+    rules = rule*;
+    pairs = rule*;
+    varlist = var*;
+    idlist = var*;
+
+    suffix = suffix_data?;
+
+    atom = {var} var
+        | {int} int suffix
+        | {bool} bool
+        | {lor} | {land} | {lnot}
+        | {bwor} | {bwand} | {bwxor} |{bwnot}
+        | {cast} [from]:suffix [to]:suffix
+        | {plus} suffix
+        | {minus} suffix
+        | {star} suffix
+        | {div} suffix
+        | {mod} suffix
+        | {unary_minus} suffix
+        | {lt} suffix
+        | {le} suffix
+        | {eq} suffix
+        | {neq} suffix
+        | {ge} suffix
+        | {gt} suffix;
+
+    var = name;
+    bool = {true} true
+        | {false} false;
+
+    rule = {cond} [lhs]:expr [rhs]:expr [cond]:expr
+        | {uncond} [lhs]:expr [rhs]:expr;
+
+    expr = {atom} atom
+        | {funcapp} atom expr*;
+
+    startterm = {constructorbased} constructorbased
+              | {full} full
+              | {automaton} automaton
+              | {functionsymbols} idlist;
+
+    goal = {complexity} complexity
+         | {termination} termination;

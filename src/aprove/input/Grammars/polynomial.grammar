@@ -1,0 +1,48 @@
+// 
+//   Title:        Polynomial grammar
+//   Description:  grammar definition for polynomials
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2003
+//   Authors:      Andreas Capellmann
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.polynomial;
+
+Helpers
+  digit = ['0' .. '9'];
+  letter = [['a' .. 'z'] + ['A' .. 'Z']];
+
+Tokens
+  plus = '+';
+  minus = '-';
+  times = '*';
+  power = '^';
+  int = digit+;
+  open = '(';
+  close = ')';
+  var = letter (letter | digit | '_')*;
+  whitespace = (' ' | 9)+;
+
+Ignored Tokens
+  whitespace;
+
+Productions
+  polynomial = addend sum;
+  addend = factor product;
+  factor = base powerof;
+  base =
+    {brackets} open polynomial close |
+    {integer} minus? int |
+    {variable} var;
+  sum =
+    {sum} plus addend sum |
+    {epsilon} ;
+  product =
+    {product} times factor product |
+    {epsilon} ;
+  powerof =
+    {power} power int |
+    {epsilon} ;

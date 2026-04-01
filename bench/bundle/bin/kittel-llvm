@@ -1,0 +1,17 @@
+FULLNAME=$1
+BASENAME=`basename $1 .c`
+
+shift
+
+./clang -Wall -Wextra -c -emit-llvm -O0 $FULLNAME -o $BASENAME.bc
+if [ $? != 0 ]
+then
+  exit 1
+fi
+
+./llvm2kittel -uniform-complexity-tuples $BASENAME.bc $* > bench.koat
+if [ $? != 0 ]
+then
+  rm -f bench.kittel
+  exit 2
+fi

@@ -1,0 +1,58 @@
+The actual grammar for diophantine logic formulae
+
+
+formula       =   xorformula '->' xorformula
+                | xorformula '<->' xorformula
+                | xorformula
+
+xorformula    = orformula {xororformula}
+
+xororformula  = 'xor' orformula
+
+orformula     = andformula {orandformula}
+
+orandformula  = or andformula
+
+or            = 'or' | '|' | '||'
+
+andformula    = litformula {andlitformula}
+
+andlitformula = and litformula
+
+and           = 'and' | '&' | '&&'
+
+litformula    = not litformula | '(' formula ')' | atom
+
+not           = 'not' | 'neg' | '!'
+
+atom          = diophantine | var | 'true' | 'false'
+
+
+diophantine  = polynomial relation polynomial
+
+polynomial   = sumformula
+
+sumformula   = factorf {pmsumf}
+
+pmsumf       = '+' factorf | '-' factorf
+
+factorf      = pmexpf {factorpmexpf}
+
+factorpmexpf = times pmexpf
+
+times        = '*' | '.'
+
+pmexpf       = '-' pmexpf | '+' pmexpf | expf
+
+expf         = base [exppotf]
+
+exppotf      = '^' int
+
+base         = int | var | '(' polynomial ')'
+
+relation     = '>' | '=' | '>=' | '<' | '>='
+
+int is a non-empty sequence of digits.
+
+var begins with a letter and may contain an arbitrary 
+sequence of letters, digits and the underscore symbol.

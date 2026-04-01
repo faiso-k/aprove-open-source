@@ -1,0 +1,72 @@
+//
+//   Title:       CTRS grammar with sorts for theorem proving
+//   Description: A grammar definiton for CTRS programs in the exchange-format.
+//   Project:     AProVE
+//   Authors:     Thomas Dickmeis
+//   Copyright:   Copyright (c) 2006
+//   Department:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+
+Package aprove.input.Generated.strs;
+
+Helpers
+  digit = ['0' .. '9'];
+  smallletter = ['a' .. 'z'];
+  capitalletter = ['A' .. 'Z'];
+   
+  blank = (' ' | 9 | 10 | 13 );
+  
+  
+Tokens
+  openpar = '(';
+  closepar = ')';
+  opensq = '[';
+  closesq = ']';  
+  sort = 'sort';
+  arrow = '->';  
+  comma = ',';
+  col = ':';  
+  pipe = '|';  
+  line_comments = '#' [[0..0xffff]-[10+13]]*(10|13|10 13)?;
+  
+  sort_ident = capitalletter smallletter+; 
+  prefix_ident = (smallletter | digit)+ '''*;
+  var_ident = capitalletter (capitalletter | digit  | ''')*;
+  
+//  infix_ident =  '::' | '>=' | ['+' '-' '*' '/' '>' '^' '@'];
+    
+  blanks = blank+;
+
+
+Ignored Tokens
+  blanks, line_comments;
+
+
+Productions
+  spec = sortdecl* funcdecl* ruledecl*;
+  
+  sortdecl = sort sort_ident;
+  
+  funcdecl = opensq prefix_ident col sorts? arrow sort_ident closesq;
+  sorts = sortcomma* sort_ident;
+  sortcomma = sort_ident comma;
+  
+  ruledecl = conditional? simple;
+  
+  simple = [left]:term arrow [right]:term;
+  
+  conditional = condlist pipe;
+  
+  condlist = condcomma* cond;
+  condcomma = cond comma;
+  cond = [left]:term arrow [right]:term;
+  
+  term = 
+    {var} var_ident |
+    {const0} prefix_ident |
+    {const_func} prefix_ident openpar termlist? closepar;
+  termlist = termcomma* term;
+  termcomma = term comma;
+  

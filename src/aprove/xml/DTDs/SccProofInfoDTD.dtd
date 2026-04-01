@@ -1,0 +1,9 @@
+<!ENTITY % scc SYSTEM "SCCDTD.dtd">
+
+%scc;
+
+<!ELEMENT SccProofInfo (SCC, NewSccs)>
+
+<!ATTLIST SccProofInfo innermost (yes|no) "no">
+
+<!ELEMENT NewSccs (SCC*)>

@@ -1,0 +1,505 @@
+<!--
+version 0.1
+ - recent changes: identifier-element has attribute name (previous id)
+
+################################################################
+                GENERAL COMMENT
+################################################################
+To be flexible entitys for proofs, obligations, orders, ... are introduces.
+To make xslt-processing handleable all these entities are wrapped with a
+corresponding xml-element.
+
+To output not-fully formalized proofs there are also text-proofs, -obligations, ...
+which can be used as dummies.
+-->
+
+
+
+<!--
+################################################################
+                PROOF-OBLIGATIONS
+################################################################
+-->
+<!ENTITY % a-basic-obligation "text-obligation | qtrs-termination-obligation |
+ qdp-termination-obligation | reltrs-termination-obligation | etrs-termination-obligation">
+<!ELEMENT basic-obligation (%a-basic-obligation;)>
+
+<!ELEMENT proof-obligation (conjunction | disjunction | proposition | proved | disproved)>
+<!-- a unique id for each proof-obligation -->
+<!ATTLIST proof-obligation
+  identifier  ID  #REQUIRED
+>
+
+<!ELEMENT proved EMPTY>
+<!ELEMENT disproved EMPTY>
+<!ELEMENT conjunction (proof-obligation)*>
+<!ELEMENT disjunction (proof-obligation)*>
+
+
+<!ELEMENT proposition (basic-obligation, (proof, implication, proof-obligation)?)>
+<!--
+  a proposition capsulates a basic proof-obligation, like a formula to be proven,
+  or the question of termination of a TRS.
+  It may be followed by a triple proof, implication, proof-obligation.
+  If the triple is missing, then the proof is incomplete.
+  Otherwise the proof in the triple proves that instead of this proposition one can
+  investigate the new proof-obligation given in the triple. The implication says whether
+  this step is sound/complete/equivalent
+-->
+<!ELEMENT implication EMPTY>
+<!ATTLIST implication
+  value   (sound|complete|equivalent) #REQUIRED
+>
+
+
+<!ELEMENT text-obligation (#PCDATA)>          <!-- unformalized obligation -->
+<!ELEMENT qtrs-termination-obligation (qtrs)> <!-- termination of a trs -->
+<!ELEMENT qdp-termination-obligation (qdp)>   <!-- finiteness of a DP-problem -->
+<!ELEMENT reltrs-termination-obligation (reltrs)>
+<!ELEMENT etrs-termination-obligation (etrs)>
+
+
+
+<!--
+################################################################
+                PROOFS
+################################################################
+-->
+<!ENTITY % a-proof "
+text-proof |
+qtrs-dependency-pairs-proof |
+qdp-reduction-pair-proof |
+qdp-mono-reduction-pair-proof |
+qdp-mono-reduction-pair-ur-proof |
+qdp-dependency-graph-proof |
+p-is-empty-proof |
+qtrs-rule-removal-proof |
+qtrs-nontermination-proof |
+qdp-nontermination-proof |
+qsrs-nontermination-proof |
+qtrs-flat-cc-proof |
+qdp-flat-cc-proof |
+qtrs-root-labeling-proof |
+qdp-root-labeling-fc1-proof |
+qdp-root-labeling-fc2-proof |
+qtrs-semantic-labeling-proof |
+qdp-semantic-labeling-proof |
+reltrs-nontermination-proof |
+relsrs-nontermination-proof |
+gtrs-crit-rule-proof |
+qdp-subterm-proof |
+qdp-size-change-proof |
+srs-as-trs-proof |
+qtrs-reverse-proof |
+qtrs-bound-proof |
+qdp-uncurry-proof |
+r-is-empty-proof |
+non-scc">
+<!-- non-scc not directly a proof, but needed for certification -->
+
+<!ELEMENT proof (%a-proof;)>
+
+<!ELEMENT text-proof (#PCDATA)>
+
+<!-- trivial proof if there are no DPs left -->
+<!ELEMENT p-is-empty-proof EMPTY>
+
+<!-- trivial proof if there are no rules left -->
+<!ELEMENT r-is-empty-proof EMPTY>
+
+<!-- SRS reversal containing the TRS after the transformation-->
+<!ELEMENT qtrs-reverse-proof (trs)>
+
+<!-- SRS as a TRS -->
+<!ELEMENT srs-as-trs-proof (trs)>
+
+<!-- rule removal proof -->
+<!ELEMENT qtrs-rule-removal-proof (trs,trs,order)>
+<!-- the first rules are the ones which were strictly oriented and deleted,
+     the second rules are remaining rules -->
+
+
+<!-- standard dependency pair proof -->
+<!ELEMENT qtrs-dependency-pairs-proof (defined-to-tuple-entry*, dps,rule-to-dps-entry*)>
+<!-- store the mapping from defined symbols to tuple-symbols
+     and the mapping from each rule to its dependency pairs where the position is also stored -->
+<!ELEMENT defined-to-tuple-entry (symbol,symbol)>
+<!ELEMENT rule-to-dps-entry (rule,position-to-dp*)>
+<!ELEMENT position-to-dp (position,rule)>
+
+<!-- making R root-preserving -->
+<!ELEMENT qtrs-flat-cc-proof (flat-context, trs)>
+
+<!-- the symbol might be the fresh one
+<!ELEMENT qdp-flat-cc-proof (symbol?, flat-context, qdp, trs)>
+
+<!-- Do root labeling -->
+<!ELEMENT qtrs-root-labeling-proof (trs)>
+
+<!ELEMENT qdp-root-labeling-fc1-proof (qdp-flat-cc-proof?, qdp, trs)>
+
+<!-- Uncurrying -->
+<!ELEMENT qdp-uncurry-proof (uncurry-information, qdp, trs)>
+<!-- application symbol, information what is uncurried, eta-rules, uncurried-rules -->
+<!ELEMENT uncurry-information (symbol, uncurry-information-entry*, trs, trs)>
+<!ELEMENT uncurry-information-entry (symbol, symbol-entries)>
+<!ATTLIST uncurry-information-entry
+    arity CDATA #REQUIRED
+>
+
+<!ELEMENT symbol-entries (symbol*)>
+
+
+<!-- Semantic Labeling -->
+<!ELEMENT qtrs-semantic-labeling-proof (carrier-size, model, trs, underProof?)>
+<!ATTLIST qtrs-semantic-labeling-proof
+	quasi (true|false) #IMPLIED
+>
+<!ELEMENT qdp-semantic-labeling-proof (carrier-size, model, trs, trs, underProof?)> <!-- first trs is r, second is p -->
+<!ATTLIST qdp-semantic-labeling-proof
+	quasi (true|false) #IMPLIED
+>
+
+<!ELEMENT carrier-size (integer)>
+<!ELEMENT model (interpret*)>
+<!ELEMENT interpret ((symbol|labeledSymbol), polynomial)> 
+
+<!-- Subterm Proof with oriented and kept rules as trs's and afs-order-->
+<!ELEMENT qdp-subterm-proof (afs?, trs, trs, order)>
+
+<!ELEMENT qdp-size-change-proof ((subterm-criterion| qdp-reduction-pair-proof), qdp-size-change-graph*)> 
+<!ELEMENT qdp-size-change-graph (edge*) >
+
+<!ELEMENT edge (position, position)>
+<!ATTLIST edge
+  strict (true|false) #REQUIRED
+>
+
+
+
+<!-- standard reduction pair proof -->
+<!ELEMENT qdp-reduction-pair-proof ((trs,trs,trs,order)|(order,trs), scnp-order?)>
+<!-- the first rules are the usable rules that have been oriented,
+     the second rules are the dps that could be strictly oriented and have been deleted,
+     and the third rules are the remaining dps that are only weakly oriented
+     The second representation of the redPairProof is just an order 
+     and usable rules for size change reduction pair
+  -->
+
+<!-- monotone reduction pair proof -->
+<!ELEMENT qdp-mono-reduction-pair-proof (order,trs,trs)>
+<!-- the first rules are the oriented dps,
+     the second rules are the oriented r - rulse
+  -->
+  
+<!-- monotone reduction pair proof with usable rules -->
+<!ELEMENT qdp-mono-reduction-pair-ur-proof (order,trs,trs,trs)>
+<!-- the first rules are the oriented dps,
+     the second rules are the oriented r - rulse
+     the third rules are the usable ones for UR
+  -->
+
+
+
+<!-- standard dependency graph proof -->
+<!ELEMENT qdp-dependency-graph-proof  (graph-scc*)>
+<!ELEMENT graph-scc (rule*, identifier*)> <!-- the identifiers point on nodes of the graph, i.e. the rules -->
+<!ELEMENT identifier EMPTY>
+<!ATTLIST identifier
+  name CDATA #REQUIRED
+>
+
+
+<!-- edge deletion proof -->
+<!ELEMENT qdp-edge-deletion-proof (edge-deletion*)>
+<!ELEMENT edge-deletion (identifier,identifier,edge-del-reason)>
+<!ELEMENT edge-del-reason (different-roots
+                          | capt-not-unifies-u
+                          | capt-u-mgu-not-normal
+                          | capu-not-unifies-t
+                          | capu-t-mgu-not-normal)>
+<!ELEMENT different-roots ((symbol|labeledSymbol), (symbol|labeledSymbol))> <!-- rt(t), rt(u) -->
+<!ELEMENT capt-not-unifies-u (term,term)> <!-- cap(t), u -->
+<!ELEMENT capt-u-mgu-not-normal (term,term,subsitution,boolean,term)> <!-- cap(t), u, mgu, ssigma or usigma, the term ssigma or usigma -->
+<!ELEMENT capu-not-unifies-t (term,term)> <!-- cap(u), t -->
+<!ELEMENT capu-t-mgu-not-normal (term,term,subsitution,boolean,term)> <!-- cap(u), t, mgu, ssigma or usigma, the term ssigma or usigma -->
+
+
+<!-- Trivial SCC (needed for certification) -->
+<!ELEMENT non-scc EMPTY>
+
+<!-- non-termination proofs -->
+<!ELEMENT qtrs-nontermination-proof (loop)>
+<!ELEMENT qsrs-nontermination-proof (loop)>
+<!ELEMENT qdp-nontermination-proof (loop)>
+<!ELEMENT reltrs-nontermination-proof (relative-loop)>
+<!ELEMENT relsrs-nontermination-proof (relative-loop)>
+<!ELEMENT loop (step*, position, context, substitution)>
+<!ELEMENT relative-loop (relative-step*, position, context, substitution)>
+<!ELEMENT step (term, term, rule, position, relative-step?, substitution)>
+<!ELEMENT relative-step (s-steps, step?)>
+<!ELEMENT s-steps (step+)>
+<!ELEMENT flat-context (context*)>
+<!ELEMENT context (box | ((symbol|labeledSymbol), term*, context, term*))>
+<!ELEMENT box EMPTY>
+
+<!--
+################################################################
+        RELATIVE / EQUATIONAL TERMINATION PROOFS
+################################################################
+-->
+
+<!-- SRS reversal -->
+<!ELEMENT reltrs-reverse-proof (trs)>
+
+<!-- rule removal proof -->
+<!ELEMENT reltrs-rule-removal-proof (trs,trs,order)>
+<!-- the rules are the ones which were strictly oriented and deleted
+     from R and S, respectively -->
+
+<!-- equational to relative termination -->
+<!ELEMENT etrs-to-reltrs-proof (trs)>
+<!-- the rules are the relative rules that the equations were transformed into -->
+
+<!--
+################################################################
+        GTRS PROOFS
+################################################################
+-->
+
+<!-- Critical rule proof containing a rule having a variable on the
+     rhs not appearing on the lhs -->
+<!ELEMENT gtrs-crit-rule-proof (rule)>
+
+<!--
+################################################################
+        BOUNDS
+################################################################
+-->
+
+<!ELEMENT qtrs-bound-proof (bound-type, final-states, tree-automaton)>
+<!ATTLIST qtrs-bound-proof
+  bound CDATA #REQUIRED 
+>
+
+<!ELEMENT bonud-type>
+<!ATTLIST bound-type
+  match (true|false) #REQUIRED)
+>
+
+<!ELEMENT final-states (state*)>
+<!ELEMENT state>
+<!ATTLIST state
+  number CDATA #REQUIRED
+>
+
+<!ELEMENT tree-automaton (transition*)>
+<!ELEMENT transition (transition-lhs, transition-rhs)>
+<!ELEMENT transition-lhs ((symbol, state*) | state)>
+<!ATTLIST transition-lhs
+  height CDATA #REQUIRED
+>
+<!ELEMENT transition-rhs (state)>
+
+<!--
+################################################################
+                ORDERS
+################################################################
+-->
+<!ENTITY % a-order "text-order | scnp-order | polynomial-order | matrix-order | path-order | neg-polynomial-order | emb-order">
+<!ELEMENT order (%a-order;)>
+
+<!ELEMENT text-order (#PCDATA)>                      <!-- unformalized order -->
+
+
+<!--
+  IMPORTANT FOR POLO/MATRO:
+  interpretations always have to name their variables by x_1,x_2, ...
+  e.g., Pol(minus(x,y)) = 1+x would correspond to the polynomial 1 + x_1
+-->
+
+
+<!ELEMENT matrix-order (matrix-interpretation*)>
+<!-- dimension: non-Neg Integer
+ belowZero: for arctic interpretations only -->
+<!ATTLIST matrix-order
+   dimension CDATA        #REQUIRED
+   type      (int|arctic|integers) #REQUIRED
+   belowZero (true|false) #IMPLIED
+>
+<!ELEMENT matrix-interpretation ((symbol|labeledSymbol),mpolynomial)>
+<!ELEMENT mpolynomial (denominator?, mmonomial*)>           <!-- monomial1 + ... + monomialN -->
+<!ELEMENT mmonomial (matrix,(polo-factor*))>  <!-- e.g., Mat * x^2 * y^1 -->
+<!ELEMENT matrix (mvect*)>                    <!-- list of columns -->
+<!ELEMENT mvect ((arctic-int | integer | rational)* | polynomial*)>                   <!-- entries for each column -->
+<!ELEMENT arctic-int EMPTY>
+<!ATTLIST arctic-int
+  infinite (true|false) #REQUIRED
+  value CDATA #IMPLIED 
+>
+<!-- value is a non Negative Integer -->
+
+<!ELEMENT polynomial-order (polo-interpretation*)>   <!-- standard polynomial order -->
+<!ATTLIST polynomial-order
+  type (int|arctic|max) "int"
+>
+<!ELEMENT polo-interpretation ((symbol|labeledSymbol),polynomial)>
+<!ELEMENT polynomial (monomial*)>            <!-- monomial1 + ... + monomialN -->
+<!ELEMENT monomial (integer,(polo-factor*))> <!-- int * polo-fac1 * ... * polo-facN, e.g. 5 * (x^2) * (y^3) -->
+<!ELEMENT polo-factor (max|min|variable*)>    <!-- var^int, e.g., x^3 -->
+<!ELEMENT degree (integer)> <!-- The maximum degree of the monomials in the polynom -->
+
+<!ELEMENT max (polynomial, polynomial)>
+<!ELEMENT min (polynomial, polynomial)>
+
+<!ELEMENT scnp-order (scnp-status, scnp-level-mapping)>
+<!ELEMENT scnp-status>
+<!ATTLIST scnp-status
+    type (MAX|MIN|MS) #REQUIRED
+>
+<!ELEMENT scnp-level-mapping (level-mapping-entry*)>
+<!ELEMENT level-mapping-entry (symbol, position-level-entry*)>
+<!ELEMENT position-level-entry (position, level)>
+<!ELEMENT level>
+<!ATTLIST level 
+    value CDATA #REQUIRED
+>
+
+<!ELEMENT neg-polynomial-order (polo-interpretation*)>
+
+<!-- Lexicographic and/or recursive path orders -->
+<!ELEMENT path-order (afs?, precedence?, statusMap)>  <!--in cpf we need the statusMap as a special afs -->
+
+<!ELEMENT afs (filter*)>
+<!ELEMENT filter ((symbol|labeledSymbol), (arg*|boolean*|collapse))> 
+<!-- list of arguments not filtered out -->
+<!-- collapse: may be true only for symbols with exactly one argument not filtered  -->
+<!ATTLIST filter
+  collapse (true|false) "false"
+  filtering (true|false) "false"
+>
+<!ELEMENT arg (#PCDATA)>
+<!ELEMENT collapse (integer)>
+
+<!ELEMENT precedence (prec*)>
+<!ELEMENT prec EMPTY>
+<!-- lhs: the function symbols that are in relation -->
+<!ATTLIST prec
+    type (gt|eq) #REQUIRED
+	lhs  CDATA   #REQUIRED
+	rhs  CDATA   #REQUIRED
+>
+
+<!ELEMENT statusMap (status*)>
+<!ELEMENT status ((symbol|labeledSymbol), (lex|multiset), prec?)>
+<!ELEMENT lex (integer*)>
+<!ELEMENT multiset EMPTY>
+
+<!ELEMENT emb-order (function-symbols)>
+<!ELEMENT function-symbols ((symbol|labeledSymbol)*)>
+
+<!--
+################################################################
+                TERMS AND TERM REWRITING
+################################################################
+-->
+
+<!-- function symbol with arity and information if it is a sharp symbol if any-->
+<!ELEMENT symbol EMPTY>    
+<!ATTLIST symbol
+  arity CDATA #REQUIRED
+  name  CDATA #REQUIRED
+  sharp (true) #IMPLIED
+>
+
+<!ELEMENT labeledSymbol ((symbol|labeledSymbol), label*)>
+<!ATTLIST labeledSymbol
+  sharp (true) #IMPLIED
+>
+  
+<!ELEMENT label ((symbol|labeledSymbol)|integer)>
+<!ATTLIST label
+  type (FSym) #IMPLIED
+>
+
+<!ELEMENT term (variable | fun-app)>    <!-- terms -->
+<!ELEMENT fun-app ((symbol|labeledSymbol), term*)>
+<!ELEMENT variable EMPTY>
+<!ATTLIST variable
+  name CDATA #REQUIRED
+>
+
+<!ELEMENT position (integer)*>                  <!-- positions of terms -->
+<!ATTLIST position 
+    value CDATA #IMPLIED
+>
+
+<!ELEMENT rule (term,term)>                     <!-- rules, (left,right) -->
+<!ATTLIST rule
+  identifier CDATA #IMPLIED
+>
+
+<!ELEMENT substitution (substitute*)>     <!-- substitution -->
+<!ELEMENT substitute (variable,term)>
+
+
+<!ELEMENT signature ((symbol|labeledSymbol)*)>                  <!-- signatures -->
+
+
+
+<!ELEMENT qtermset (term*)>  <!-- for specification of evaluation strategy,
+                                  contains lhs of TRSs, i.e., only fun-apps -->
+
+<!ELEMENT trs (rule*)>       <!-- a trs is a standard TRS, while rules can also be used as a set of
+                                  dependency pairs -->
+<!ELEMENT qtrs (trs,qtermset,signature?)>   <!-- a qtrs is TRS with evaluation strategy,
+                                                 the signature can be given, but can be ommitted.
+                                                 (the TRS and the qtermset specify the signature) -->
+
+<!ELEMENT dps (rule*,dp-edge*)> <!-- the pairs, represented as rules where the identifier must be present,
+                                     and the graph as list of identifier-pairs -->
+<!ELEMENT dp-edge EMPTY>  <!-- (from_dp, to_dp) -->
+<!ATTLIST dp-edge
+  fr CDATA #REQUIRED
+  to CDATA #REQUIRED
+>
+
+
+<!ELEMENT qdp (dps,trs,qtermset,minimality-flag,signature?)> <!-- a qdp-problem as specified in the
+                                                                  DP-framework paper, additionally we consider
+                                                                  P as a graph over dependency pairs -->
+<!ELEMENT minimality-flag (boolean)>
+
+<!ELEMENT reltrs (trs, trs, signature?)>
+
+<!ELEMENT etrs (trs, equations, signature?)>
+<!ELEMENT equations (equation*)>
+<!ELEMENT equation (term, term)>
+
+<!--
+################################################################
+                VARIOUS
+################################################################
+-->
+
+<!ELEMENT integer EMPTY>
+<!ATTLIST integer
+  value  CDATA #REQUIRED
+>
+
+<!ELEMENT rational (numerator, denominator)>
+
+<!ELEMENT numerator EMPTY>
+<!ATTLIST numerator
+  value CDATA #REQUIRED
+>
+
+<!ELEMENT denominator EMPTY>
+<!ATTLIST denominator
+  value CDATA #REQUIRED
+>
+
+<!ELEMENT boolean EMPTY>
+<!ATTLIST boolean
+  value   (true|false) #REQUIRED
+>

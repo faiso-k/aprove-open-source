@@ -1,0 +1,3 @@
+<!ELEMENT IntArray (Int*)>
+
+<!ELEMENT Int (#PCDATA)>

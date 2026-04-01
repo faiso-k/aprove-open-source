@@ -1,0 +1,23 @@
+<!ELEMENT Term (((Defsym | Conssym | Tuplesym), Term*) | Varsym)>
+
+<!ELEMENT Defsym (#PCDATA)>
+
+<!ATTLIST Defsym infix (yes|no) "no"
+                 sort CDATA #REQUIRED
+                 arity CDATA #REQUIRED>
+
+<!ELEMENT Conssym (#PCDATA)>
+
+<!ATTLIST Conssym infix (yes|no) "no"
+                  sort CDATA #REQUIRED
+                  arity CDATA #REQUIRED>
+
+<!ELEMENT Tuplesym (#PCDATA)>
+
+<!ATTLIST Tuplesym infix (yes|no) "no"
+                  sort CDATA #REQUIRED
+                  arity CDATA #REQUIRED>
+
+<!ELEMENT Varsym (#PCDATA)>
+
+<!ATTLIST Varsym sort CDATA #REQUIRED>

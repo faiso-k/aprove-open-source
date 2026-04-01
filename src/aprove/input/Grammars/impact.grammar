@@ -1,0 +1,320 @@
+// IMPACT Grammar
+// M. Gluzberg
+
+Package aprove.input.Generated.impact;
+
+Helpers
+	digit = ['0' .. '9'];
+	lowercase = ['a' .. 'z'];
+	uppercase = ['A' .. 'Z'];
+	underscore = '_';
+	all = [ 0 .. 65535 ];
+	blanks = (' ' | 9 )+;
+	newline = ( 10 | 13 | 10 13);
+	
+
+Tokens
+	
+	return = 'return';
+	while = 'while';
+	if = 'if';
+	else = 'else';
+	assert = 'assert';
+	assume = 'assume';
+	for = 'for';
+	goto= 'goto';
+	
+	nondetint = 'nondet_int';
+	nondetbool = 'nondet_bool';
+	
+	
+
+	
+	
+	or = '||';
+	and = '&&';
+	not = '!';
+	equal = '==';
+	nequal = '!=';
+	less = '<';
+	lequal = '<=';
+	greater = '>';
+	gequal = '>=';
+	
+	dplus = '++';
+	dminus = '--';
+	
+	plus = '+';
+	minus = '-';
+
+	times = '*';
+	slash = '/'; 
+	mod = '%';
+	assign = '=';
+	
+	delimiter = ';';
+	par_l = '(';
+	par_r = ')';
+	brac_l = '{';
+	brac_r = '}';
+	sqr_l = '[';
+	sqr_r = ']';
+	comma = ',';
+	col = ':';
+
+
+
+	
+	int_type = 'int';
+	char_type = 'char';
+	long_type = 'long';
+	llong_type = 'long long';
+	void_type = 'void';
+	unsigned = 'unsigned';
+    
+	extern_type = 'extern';
+
+	low = 'L';
+		
+	num = digit+;
+	
+	true = 'true';
+	false = 'false';
+	
+
+	id = (lowercase | uppercase | underscore) (lowercase | uppercase | digit | underscore)*; 
+	
+	line_comment = '//' [all - [10 + 13]] * newline ?;
+	
+	white_spaces = blanks | newline;
+	
+	attribute_noreturn = '__attribute__ ((__noreturn__))';
+	
+	line_number = '#line' [all - [10 + 13]] * newline ?;
+
+	comment	=	'/*' [ all - '*' ] * '*' + ( [ all - ['*'+'/'] ] [ all - '*' ] * '*'+ ) * '/';
+	
+	
+
+Ignored Tokens
+	white_spaces, line_comment, attribute_noreturn, line_number, comment;
+
+Productions
+
+	program = program_item+;
+	
+	program_item = 	{external} external_declaration delimiter |
+					{variable} variable_declaration delimiter |
+					{function} function;
+				
+	external_declaration = extern_type return_type function_id function_variables  ;
+	
+	function = {def} function_definition | {decl} function_declaration;
+	
+	function_declaration = return_type function_id function_variables delimiter;
+	function_definition = return_type function_id function_variables function_body;
+
+
+	assignment_postfix = assign numeric_exp;
+	variable_declaration =  variable_type variables_declaration_list;
+	
+	variables_declaration_list = 
+		{multiple}	variables_declaration_list comma variable_id  assignment_postfix? |
+		{single}	variable_id  assignment_postfix?;
+	
+	array_declaration = variable_type sqr_l numeric_exp? sqr_r variable_id array_initialization? ;
+	
+	
+	array_initialization = 	{empty} 	brac_l brac_r |
+							{nonempty}	brac_l	array_initialization_list brac_r;
+							
+	array_initialization_list = {multiple}	array_initialization comma numeric_exp |
+						   		{single}		numeric_exp;
+						   
+	
+	
+	variable_type_raw = {int} int_type | {char} char_type  | {long} long_type  | {llong} llong_type;
+	variable_type = unsigned? variable_type_raw ;
+	return_type = {value} variable_type times?| {void} void_type times?;
+	
+	casting = par_l variable_type par_r;
+	
+			
+	boolean_const = 	
+		{true} true | 
+		{false} false;
+		
+	constant_int = num low?;
+	
+
+	
+	label_id = id;
+	variable_id = id;
+	function_variable_id = id;
+	label = id col;
+	
+	function_id = id;
+	call_id = id;
+	evaluate_id = id;
+	function_variables = 
+		{empty} par_l par_r |
+		{void} par_l void_type par_r | 
+		{nonempty} 	par_l variables_list par_r; 
+		
+	function_variables_types = 
+		{empty} par_l par_r |
+		{void} par_l void_type par_r | 
+		{nonempty} 	par_l variables_types_list par_r; 
+		
+	function_decl_par = {typed} function_variables_types | {named} function_variables;
+		
+	variables_list = 
+		{multiple}	variables_list comma variable_type function_variable_id? |
+		{single}	variable_type function_variable_id?;
+		
+	variables_types_list = 
+		{multiple}	variables_types_list comma variable_type |
+		{single}	variable_type;
+			
+	function_body = brac_l statement* brac_r;
+	
+	function_call = call_id call_parameters ;	
+	
+	call_parameters = 
+		{empty} par_l par_r | 
+		{nonempty} 	par_l parameters_list par_r; 
+	
+	parameters_list =
+		{multiple}	parameters_list comma numeric_exp |
+		{single}	numeric_exp;
+		
+ 	item =
+ 		{variable}		variable_id |
+		{array}			variable_id sqr_l numeric_exp sqr_r ;
+	
+	assignment = 
+		{add}		item plus assign  numeric_exp |
+		{sub}		item minus assign  numeric_exp |
+		{simple}	item assign numeric_exp |
+		{inc}		variable_id dplus |
+		{dec}		variable_id dminus ;
+	
+	
+	init_statement =
+		{declaration} 	variable_declaration |
+		{assign}		assignment ;
+	
+	simple_statement =
+		{noop}			label?  delimiter |
+		{declaration}	label?  variable_declaration delimiter|
+		{goto}			label? 	goto label_id delimiter |
+		{return} 		label? 	return numeric_exp? delimiter |
+		{assertion}		label? 	assert condition delimiter |
+		{assumption}	label? 	assume condition delimiter |
+		{block}			label?	brac_l 	statement* brac_r |
+		{assign}		label? 	assignment delimiter |
+		{call}			label?  function_call delimiter;
+		
+	assignments_list =
+		{multiple}		assignments_list comma assignment |
+		{single} 		assignment;		
+		
+	init_list =
+		{assign}		assignment |
+		{declare} 		variable_declaration;	
+		
+	statement = 
+		{if_simple}		label? 	if condition [then]:block |
+    	{if_else}		label? 	if condition [then]:block_with_else else [else_st]:block |
+		{while}			label? 	while condition [do]:block |
+		{for} 			label?  for par_l [init]:init_list? [delimiter1]:delimiter [cond]:boolean_exp? [delimiter2]:delimiter  [step]:assignments_list? par_r block |
+		{simple}		simple_statement ;
+		
+	condition = {boolean} par_l boolean_exp par_r;
+					
+	block = statement;
+	block_with_else = statement_with_else;
+
+	
+	statement_with_else =
+		{if_else}		label? 	if condition [then]:block_with_else else [else_st]:block_with_else|
+		{while}			label? 	while condition [do]:block_with_else |
+		{for} 			for par_l [init]:init_list? [delimiter1]:delimiter [cond]:boolean_exp? [delimiter2]:delimiter  [step]:assignments_list? par_r block_with_else |
+		{simple}		simple_statement;
+		
+	
+	
+
+
+	
+	boolean_exp =
+		{disjunction}	boolean_exp or boolean_term |
+		{simple}		boolean_term ;
+
+			
+	boolean_term =
+		{conjunction}	boolean_term and boolean_factor |
+		{simple}		boolean_factor;
+		
+	
+	boolean_factor =
+		{simple}		boolean_primary |	
+		{num}			numeric_exp	;
+		
+
+		
+			
+	boolean_primary =	
+		{equality}		[left]:numeric_exp equal [right]:numeric_exp |
+		{inequality}	[left]:numeric_exp nequal [right]:numeric_exp |
+		{less}			[left]:numeric_exp less [right]:numeric_exp |
+		{greater}		[left]:numeric_exp greater [right]:numeric_exp |
+		{lequal}		[left]:numeric_exp lequal [right]:numeric_exp |
+		{gequal}		[left]:numeric_exp gequal [right]:numeric_exp;
+			
+	
+	
+	
+				
+	numeric_exp =
+		{addition}		numeric_exp plus numeric_factor |
+		{subtraction}	numeric_exp minus numeric_factor |
+		{simple}		numeric_factor;	
+			
+	numeric_factor =
+		{multiplication}	numeric_factor times numeric_unary |
+		{division}		numeric_factor slash numeric_unary |
+		{modulo}		numeric_factor mod numeric_unary |
+		{simple}		numeric_unary;
+		
+	numeric_unary =		
+		{pre_inc}		dplus item |
+		{pre_dec}		dminus item |
+		{plus}			plus numeric_unary |
+		{minus}			minus numeric_unary |
+		{post}			numeric_item;
+		
+		
+	numeric_post =
+		{inc}			item dplus |
+		{dec}			item dminus |
+		{cast}			casting numeric_post |
+		{simple}		numeric_item;
+
+	numeric_item = 		
+		{constant}		constant_int |
+		{bconst}		boolean_const |
+		{function}		function_call |		
+		{simple}		item  |
+		{par}			par_l boolean_exp par_r;
+
+
+
+		
+
+	
+		
+		
+	
+		
+		

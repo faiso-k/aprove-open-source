@@ -1,0 +1,9 @@
+<!ENTITY % program SYSTEM "ProgramDTD.dtd">
+
+%program;
+
+<!ELEMENT TRS (Program)>
+
+<!ATTLIST TRS innermost (yes|no) #REQUIRED
+              createIndex (yes|no) #REQUIRED
+              showObligation (yes|no) #REQUIRED>

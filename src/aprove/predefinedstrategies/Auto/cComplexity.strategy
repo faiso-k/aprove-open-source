@@ -1,0 +1,8 @@
+main = RunDefaultStrategyForObligation
+
+c = CToLLVMCpx:llvmComplexity
+
+llvmComplexity = LLVMToCpxGraph[Solver=HEURISTICS]:
+                 LLVMCpxGraphToIntTRS:
+                 IntTrsToCpxIntTrs:
+                 CpxIntTrsToKoAT

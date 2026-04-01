@@ -1,0 +1,41 @@
+//
+//   Title:        TERM grammar
+//   Description:  grammar definition for a term
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2001
+//   Authors:      Peter Schneider-Kamp, Christian Haselbach
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.term;
+
+Tokens
+ open = '(';
+ close = ')';
+ comma = ',';
+ blanks = (' ' | 9 | 10 | 13 )+;
+ line_comments = '#' [[0..0xffff]-[10+13]]*(10|13|10 13)?;
+ full_comments = '~' [[0..0xffff]-'~']*'~';
+ // The patterns for prefix_id, infix_id are only place holders. If any of
+ // these three (including var_id) occurs, the TermLexer class will reevaluate
+ // the token class according to semantic information.
+ prefix_id = 'id_prefix''a'+;
+ infix_id = 'id_infix''a'+;
+ var_id = [[0..0xffff]-[[[[[[[[['~'+'#']+' ']+9]+10]+13]+'(']+')']+',']+'.']]+;
+
+Ignored Tokens
+ blanks, line_comments, full_comments;
+
+Productions
+ term =
+   {infix} [left]:nterm infix_id [right]:term |
+   {normal} nterm;
+ nterm =
+   {var} var_id |
+   {const} prefix_id |
+   {funct_app} prefix_id open termlist close |
+   {paren} open term close;
+ termlist = termcomma* term;
+ termcomma = term comma;

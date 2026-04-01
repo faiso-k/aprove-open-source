@@ -1,0 +1,91 @@
+<!ENTITY % help SYSTEM "HelpDTD.dtd">
+
+%help;
+
+<!ELEMENT Pathorder ((EMB|LPO|RPO|QEMB|LPOS|RPOS|QRPO|QLPO|QLPOS|QRPOS|KBO|QKBO), OrderName)>
+
+<!ELEMENT EMB EMPTY>
+
+<!ELEMENT LPO (PoWithoutStatus)>
+
+<!ELEMENT RPO (PoWithoutStatus)>
+
+<!ELEMENT QEMB (QoWithoutStatus)>
+
+<!ELEMENT LPOS (PoWithStatus)>
+
+<!ELEMENT RPOS (PoWithStatus)>
+
+<!ELEMENT QRPO (QoWithoutStatus)>
+
+<!ELEMENT QLPO (QoWithoutStatus)>
+
+<!ELEMENT QLPOS (QoWithStatus)>
+
+<!ELEMENT QRPOS (QoWithStatus)>
+
+<!ELEMENT KBO (Weight, KBOElem*, Chain*)>
+
+<!ATTLIST KBO PrecedenceTrivial (yes|no) "no"
+              WeightTrivial (yes|no) "no">
+
+<!ELEMENT KBOElem (PoElem, Weight)>
+
+<!ELEMENT QKBO (Weight, QKBOElem*, Chain*)>
+
+<!ATTLIST QKBO PrecedenceTrivial (yes|no) "no"
+              WeightTrivial (yes|no) "no">
+
+<!ELEMENT QKBOElem (QoElem, Weight)>
+
+<!ELEMENT PoWithoutStatus (PoElem*, Chain*)>
+
+<!ATTLIST PoWithoutStatus trivial (yes|no) "no">
+
+<!ELEMENT QoWithoutStatus (QoElem*, Chain*)>
+
+<!ATTLIST QoWithoutStatus trivial (yes|no) "no">
+
+<!ELEMENT PoWithStatus (PoSElem*, Chain*)>
+
+<!ATTLIST PoWithStatus trivial (yes|no) "no">
+
+<!ELEMENT QoWithStatus (QoSElem*, Chain*)>
+
+<!ATTLIST QoWithStatus trivial (yes|no) "no">
+
+<!ELEMENT PoElem (Name, Smaller)>
+
+<!ATTLIST PoElem minimal (yes|no) "no">
+
+<!ELEMENT Smaller (Name*)>
+
+<!ELEMENT Name (#PCDATA)>
+
+<!ELEMENT QoElem (Name, Smaller, Equiv)>
+
+<!ATTLIST QoElem minimal (yes|no) "no">
+
+<!ELEMENT Equiv (Name*)>
+
+<!ELEMENT PoSElem (PoElem, Status)>
+
+<!ELEMENT QoSElem (QoElem, Status)>
+
+<!ELEMENT Status ((Multi|Flat|Perm|Trivial))>
+
+<!ELEMENT Trivial EMPTY>
+
+<!ELEMENT Multi EMPTY>
+
+<!ELEMENT Flat EMPTY>
+
+<!ELEMENT Perm (IntArray, Int)>
+
+<!ELEMENT Weight (Int)>
+
+<!ELEMENT OrderName (#PCDATA)> 
+
+<!ELEMENT Chain (ChainElem+)>
+
+<!ELEMENT ChainElem (#PCDATA)>

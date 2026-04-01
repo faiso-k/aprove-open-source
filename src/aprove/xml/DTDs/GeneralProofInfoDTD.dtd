@@ -1,0 +1,20 @@
+<!-- TODO implement obligation
+for now, just leave it empty
+
+ <!ENTITY % obligation SYSTEM "ObligationDTD.dtd">
+
+%obligation;
+
+-->
+
+<!ELEMENT Obligation EMPTY>
+
+<!ELEMENT GeneralProofInfo (FileName, Obligation)>
+
+<!ATTLIST GeneralProofInfo success (YES|NO|MAYBE) "MAYBE"
+						   propagatedSuccess (YES|NO|MAYBE) "MAYBE"	
+						   complete (yes|no) "no"	
+						   stupid (yes|no) "no"
+						   timedOut (yes|no) "no">
+
+<!ELEMENT FileName (#PCDATA)>

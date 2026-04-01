@@ -1,0 +1,134 @@
+package aprove.verification.dpframework.Utility.NonLoop.structures.proofed.intantiating;
+
+import org.w3c.dom.*;
+
+import aprove.*;
+import aprove.prooftree.Export.Utility.*;
+import aprove.verification.dpframework.BasicStructures.*;
+import aprove.verification.dpframework.Utility.NonLoop.*;
+import aprove.verification.dpframework.Utility.NonLoop.structures.*;
+import aprove.verification.dpframework.Utility.NonLoop.structures.proofed.*;
+import aprove.verification.oldframework.Utility.GenericStructures.*;
+import aprove.xml.*;
+import immutables.*;
+
+/**
+ * @author Tim Enger
+ */
+
+public class InstantiateSigma extends ProofedRule {
+
+    /**
+     * The substitution rho used for instantiating sigma
+     */
+    private final TRSSubstitution rho;
+
+    /**
+     * Parent used for instantiation.
+     */
+    private final ProofedRule parent;
+
+    private InstantiateSigma(final PatternTerm lhs, final PatternTerm rhs, final ProofedRule parentArg,
+            final TRSSubstitution rhoArg) {
+        super(lhs, rhs, parentArg.getR(), parentArg.getP(), parentArg.hasPStep());
+        this.parent = parentArg;
+        this.rho = rhoArg;
+    }
+
+    public static ProofedRule create(final ProofedRule lr, final TRSSubstitution rho) {
+
+        final PatternRule pRule = lr.getPatternRule();
+        final PatternTerm lhs = pRule.getLhs();
+        final PatternTerm rhs = pRule.getRhs();
+
+        final TRSTerm l = lhs.getT();
+        final TRSSubstitution sigmaL = lhs.getSigma();
+        final TRSSubstitution muL = lhs.getMu();
+
+        final TRSTerm r = rhs.getT();
+        final TRSSubstitution sigmaR = rhs.getSigma();
+        final TRSSubstitution muR = rhs.getMu();
+
+        if (Utils.commutative(rho, sigmaL) && Utils.commutative(rho, muL) && Utils.commutative(rho, sigmaR)
+            && Utils.commutative(rho, muR)) {
+
+            final PatternTerm lhsN = new PatternTerm(l, sigmaL.compose(rho), muL);
+            final PatternTerm rhsN = new PatternTerm(r, sigmaR.compose(rho), muR);
+
+            if (lhsN.equals(lhs) && rhsN.equals(rhs)) {
+                // it's still the same rule, so just return it
+                if (Globals.DEBUG_NEX) {
+                    System.err.println("InstantiateSigma: Same rule as before!");
+                }
+                return lr;
+            }
+
+            return new InstantiateSigma(lhsN, rhsN, lr, rho);
+        }
+        return null;
+    }
+    
+    @Override
+    public int getProofStepCount() {
+        return 1 + this.parent.getProofStepCount();
+    }
+
+    @Override
+    public ImmutableList<Pair<Position, Rule>> reconstructSequence() {
+        return parent.reconstructSequence();
+    }
+
+    @Override
+    public String exportProof(final Export_Util eu) {
+        return "Instantiate Sigma with rho: " + this.rho.export(eu);
+    }
+
+    @Override
+    public String exportProofShort(final Export_Util eu) {
+        return "Instantiate Sigma";
+    }
+
+    /**
+     * @return The {@link ProofedRule parent} used for instantiation of sigma.
+     */
+    public ProofedRule getParent() {
+        return this.parent;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String exportParents(final Export_Util eu,
+        final String indent,
+        final String addIndent,
+        final boolean firstIntermediate,
+        final boolean fullProof) {
+        return this.parent.export(eu, indent, addIndent, firstIntermediate, fullProof);
+    }
+
+    @Override
+    public Element toDOM(final Document doc, final XMLMetaData xmlMetaData) {
+        final Element instantiation = XMLTag.INSTANTIATION.createElement(doc);
+        instantiation.appendChild(this.getPatternRule().toDOM(doc, xmlMetaData));
+        instantiation.appendChild(this.parent.toDOM(doc, xmlMetaData));
+        instantiation.appendChild(this.rho.toDOM(doc, xmlMetaData));
+        instantiation.appendChild(XMLTag.PUMPING.createElement(doc));
+        final Element proofedRule = XMLTag.PROOFED_RULE.createElement(doc);
+        proofedRule.appendChild(instantiation);
+        return proofedRule;
+    }
+
+    @Override
+    public Element toCPF(final Document doc, final XMLMetaData xmlMetaData) {
+        final Element instantiation = CPFTag.INSTANTIATION.create(doc,
+            this.parent.toCPF(doc, xmlMetaData),
+            this.rho.toCPF(doc, xmlMetaData),
+            CPFTag.PUMPING.create(doc));
+        return CPFTag.PATTERN_RULE.create(doc,
+                this.getPatternRule().getLhs().toCPF(doc, xmlMetaData),
+                this.getPatternRule().getRhs().toCPF(doc, xmlMetaData),
+                instantiation);
+    }
+
+}

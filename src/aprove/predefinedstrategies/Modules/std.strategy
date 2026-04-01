@@ -1,0 +1,1854 @@
+
+# This module is automatically included into the namespace of all strategy files parsed.
+# Eventually, this will be automatically generated.
+# For now, I've added vim folding markers, hoping they might be useful.
+#
+# For now, add processors and defaults manually.
+# If the format isn't self-explanatory, kick BearPerson.
+
+
+# Strategy infrastructure {{{1
+# These two names are special, translated from : and ; respectively {{{2
+declare Sequence = aprove.strategies.UserStrategies.Sequence
+    defaults [Parallel = False]
+
+declare ParallelSequence = aprove.strategies.UserStrategies.Sequence
+    defaults [Parallel = True]
+
+# These used to be keywords {{{2
+declare First = aprove.strategies.UserStrategies.First
+declare Any = aprove.strategies.UserStrategies.Any
+declare AnyDelay = aprove.strategies.UserStrategies.AnyDelay
+declare AnyK = aprove.strategies.UserStrategies.AnyK
+declare Combine = aprove.strategies.UserStrategies.CombineSequential
+declare CombineParallel = aprove.strategies.UserStrategies.CombineParallel
+declare Delay = aprove.strategies.UserStrategies.Delay
+declare Maybe = aprove.strategies.UserStrategies.Maybe
+declare Timer = aprove.strategies.UserStrategies.Timer
+declare WallTimer = aprove.strategies.UserStrategies.WallTimer
+# TODO: Make these more elegant
+declare Repeat = aprove.strategies.UserStrategies.Repeat
+    defaults [Min=0, Max=-1, Breadth = True]
+
+declare RepeatS = aprove.strategies.UserStrategies.Repeat
+    defaults [Min=0, Max=-1, Breadth = False]
+
+declare Solve = aprove.strategies.UserStrategies.Solve
+    defaults [DesiredResult = WANT_ANY]
+
+declare Prove = aprove.strategies.UserStrategies.Solve
+    defaults [DesiredResult = WANT_YES]
+
+declare Disprove = aprove.strategies.UserStrategies.Solve
+    defaults [DesiredResult = WANT_NO]
+
+
+# Processors {{{1
+# General processor {{{2
+declare External = aprove.verification.dpframework.ExternalProcessor
+    defaults [Call = "", Args = ""]
+declare ExternalTpdbTool = aprove.verification.dpframework.ExternalTpdbTool.ExternalTpdbToolProcessor
+
+declare If = aprove.verification.dpframework.Heuristics.Processors.IfHeuristic
+
+
+# Processor used for termination analyses {{{2
+declare ConditionalTransformer = aprove.verification.oldframework.Rewriting.Transformers.ConditionalTransformer
+declare CTRS2TRS = aprove.verification.oldframework.Rewriting.Transformers.ConditionalTransformer
+
+
+# new QDPProcessor {{{2
+declare QDPPairToRule = aprove.verification.dpframework.DPProblem.Processors.QDPPairToRuleProcessor
+declare QDPDependencyGraph = aprove.verification.dpframework.DPProblem.Processors.DependencyGraphProcessor
+declare QDPNonTerm = aprove.verification.dpframework.Heuristics.Processors.OldNonTermHeuristic
+    defaults [TotalLimit = 3
+             ,LeftLimit = 3
+             ,RightLimit = 3
+             ,Heuristic = NORMAL
+             ]
+
+declare QDPLoopFinder = aprove.verification.dpframework.DPProblem.Processors.NonTerminationProcessor
+    defaults [TotalLimit = 3
+             ,LeftLimit = 3
+             ,RightLimit = 3
+             ,Heuristic = NORMAL
+             ]
+
+declare QDPUsableRules = aprove.verification.dpframework.DPProblem.Processors.UsableRulesProcessor
+    defaults [BeComplete = True, UseApplicativeCeRules = True]
+
+declare QDPATransformation = aprove.verification.dpframework.DPProblem.Processors.ATransformationProcessor
+    defaults [BeComplete = True, KeepMinimality = True]
+
+declare QDPRRRQ = aprove.verification.dpframework.DPProblem.Processors.RRR_Q_Processor
+declare QDPMatchbounds = aprove.verification.dpframework.DPProblem.Processors.RFCMatchBoundsProcessor
+    defaults [NodeBound = 90, EdgeBound = 120]
+
+declare QDPIntroMinimality = aprove.verification.dpframework.DPProblem.Processors.IntroMinimalityProcessor
+declare QDPPolo = aprove.verification.dpframework.DPProblem.Processors.QDPPoloProcessor
+    defaults [Degree = 1
+             ,Range = 1
+             ,Mode = SEARCHSTRICT
+             ,MaxSimpleDegree = 4
+             ,Active = True
+             ,MergeMutual = True
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare QDPNegPolo = aprove.verification.dpframework.DPProblem.Processors.QDPNegPoloProcessor
+    defaults [Range = 1, Restriction = 2, Allstrict = False]
+
+declare QDPMNOC = aprove.verification.dpframework.DPProblem.Processors.MNOCProcessor
+    defaults [TestDepth = 2, Reversed = False]
+
+declare QDPUsableRulesRP = aprove.verification.dpframework.DPProblem.Processors.UsableRulesReductionPairsProcessor
+    defaults [AllowATransformation = True
+             ,Degree = 1
+             ,Range = 2
+             ,MaxSimpleDegree = 5
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare QDPRuleRemoval = aprove.verification.dpframework.DPProblem.Processors.RuleRemovalProcessor
+    defaults [Degree = 1
+             ,Range = 2
+             ,Mode = SEARCHSTRICT
+             ,MaxSimpleDegree = 5
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare QDPMRR = aprove.verification.dpframework.DPProblem.Processors.MRRProcessor
+    defaults [Order = RPOS
+                 [Engine = MINISAT, Quasi = True, Afstype = MONOTONEAFS]
+             ,Allstrict = False
+             ]
+
+declare QDPQMonMRR = aprove.verification.dpframework.DPProblem.Processors.QDPQMonotonicMRRProcessor
+    defaults [Order = POLO
+                 [Engine = MINISAT, Range = 2]
+             ,DeleteROnly = True
+             ]
+
+declare QDPAfsSolver = aprove.verification.dpframework.DPProblem.Processors.QDPAfsSolverProcessor
+declare QDPSATAfsSolver = aprove.verification.dpframework.DPProblem.Processors.QDPSATAfsSolverProcessor
+    defaults [Order = LPO[Quasi = False], Active = True]
+
+declare QDPSizeChange = aprove.verification.dpframework.DPProblem.Processors.QDPSizeChangeProcessor
+    defaults [Subterm = False
+             ,UsableArgumentsRestriction = 0
+             ,AfsRestriction = 2
+             ,MergeMutual = True
+             ,Range = 1
+             ,Engine = SAT4J
+             ]
+
+declare QDPQReduction = aprove.verification.dpframework.DPProblem.Processors.QDPQReductionProcessor
+    defaults [KeepMinimality = True]
+
+declare QDPInstantiation = aprove.verification.dpframework.DPProblem.Processors.QDPInstantiationProcessor
+    defaults [Limit = 0]
+
+declare QDPForwardInstantiation = aprove.verification.dpframework.DPProblem.Processors.QDPForwardInstantiationProcessor
+    defaults [Limit = 0]
+
+declare QDPRewriting = aprove.verification.dpframework.DPProblem.Processors.QDPRewritingProcessor
+    defaults [Limit = 50, BeComplete = False]
+
+declare QDPNarrowing = aprove.verification.dpframework.DPProblem.Processors.QDPNarrowingProcessor
+    defaults [Limit = 0
+             ,BeComplete = False
+             ,Positional = True
+             ,NonrecursiveHeuristic = True
+             ]
+
+declare QDPSemanticLabelling = aprove.verification.dpframework.DPProblem.Processors.SemanticLabellingProcessor
+    defaults [CarrierSetSize = 2
+             ,AllowQuasi = True
+             ,Engine = SAT4J
+             ,BooleanTuples = False
+             ,Dimension = 2
+             ,IncrementalEngine = INCREMENTAL
+             ,EnforceQuasi = False
+             ]
+
+declare QDPRootLabelingFC1 = aprove.verification.dpframework.DPProblem.Processors.QDPRootLabelingFC1Processor
+    defaults [Heuristic = LabelAll
+             ,PreserveMinimality = True
+             ]
+
+declare QDPRootLabelingFC2 = aprove.verification.dpframework.DPProblem.Processors.QDPRootLabelingFC2Processor
+    defaults [Heuristic = LabelAll
+             ,PreserveMinimality = True
+             ]
+
+declare QDPToSRS = aprove.verification.dpframework.DPProblem.Processors.QDPToSRSProcessor
+    defaults [Zantema = True]
+
+declare QDPBoundedIncrease = aprove.verification.dpframework.DPProblem.Processors.QDPBoundedIncreaseProcessor
+declare QDPReductionPair = aprove.verification.dpframework.DPProblem.Processors.QDPReductionPairProcessor
+    defaults [Heuristic = FullSearch
+             ,Order = POLO
+                 [Engine = MINISAT[Version = 2], Degree = 1, Range = 2]
+             ,Allstrict = False
+             ,Active = True
+             ,MergeMutual = True
+             ,Usable = True
+             ]
+
+declare QDPNegCoeffPolo = aprove.verification.dpframework.DPProblem.Processors.QDPNegCoeffPoloProcessor
+    defaults [PosRange = 1
+             ,NegRange = -1
+             ,Usable = True
+             ,Active = False
+             ,Heuristic = PRHS
+             ,Simplification = MAXIMUM
+             ,StripExponents = True
+             ,Engine = MINISAT
+                 [Version = 2
+                 ,AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ,AppendForTimes = True
+                 ,Tracking = True
+                 ,ProductAbstraction = False
+                 ]
+             ]
+
+declare QDPFuncArityProc = aprove.verification.dpframework.DPProblem.Processors.QDPFuncArityProcessor
+declare QDPAddDPConstraints = aprove.verification.dpframework.DPProblem.Processors.QDPAddDPConstraintsProcessor
+    defaults [LeftChainCounter = 0
+             ,RightChainCounter = 1
+             ,InductionCounter = 3
+             ]
+
+declare QDPNonMonReductionPair = aprove.verification.dpframework.DPProblem.Processors.QDPNonMonReductionPairProcessor
+    defaults [Allstrict = False
+             ,PosRange = 1
+             ,NegRange = -1
+             ,Heuristic = CAND1
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Engine = MINISAT[Version = 1]
+             ]
+
+declare QDPNonInfReductionPair = aprove.verification.dpframework.DPProblem.Processors.QDPNonInfReductionPairProcessor
+    defaults [Engine = MINISAT[Version = 2]
+             ,DegreeTuple = 1
+             ,Maximum = 1
+             ,MaximumForSmall = 1
+             ,Minimum = 1
+             ,LeftChainCounter = 0
+             ,RightChainCounter = 1
+             ,InductionCounter = 3
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,EnforceNegative = False
+             ,DetectNonNegative = False
+             ]
+
+declare QDPnonInfMoreInductionCheck = aprove.verification.dpframework.DPProblem.Processors.QDPNonInfMoreInductionCheckProcessor
+declare QDPComplexConstantRemoval = aprove.verification.dpframework.DPProblem.Processors.QDPComplexConstantRemovalProcessor
+declare QDPSemanticPOLOLabelling = aprove.verification.dpframework.DPProblem.Processors.QDPSemanticPOLOLabellingProcessor
+declare QDPSubterm = aprove.verification.dpframework.DPProblem.Processors.QDPSubtermProcessor
+    defaults [Engine = SAT4J, Allstrict = False]
+
+declare QDPTheoremProver = aprove.verification.dpframework.DPProblem.Processors.QDPTheoremProverProcessor
+    defaults [Order = POLO[Engine = SAT4J, Range = 1, Degree = 1]
+             ,TheoremProverStrategy = "thm"
+             ,UnpackConstructors = True
+             ,RemoveDuplicates = True
+             ]
+
+declare QDPUncurrying = aprove.verification.dpframework.DPProblem.Processors.QDPUncurryingProcessor
+    defaults [Method = HIRO_MIDDEL_ZANKL, Top = False]
+declare QDPNonLoop = aprove.verification.dpframework.DPProblem.Processors.QDPNonLoopProcessor
+declare QDPStandardRepresentation = aprove.verification.dpframework.DPProblem.Processors.QDPStandardRepresentationProcessor
+declare QDPBoundsTAProcessor = aprove.verification.dpframework.DPProblem.Processors.QDPBoundsTAProcessor
+    defaults [STAS = OSFEFS, CRS = KMS]
+
+declare QDPDumpChains = aprove.verification.dpframework.DPProblem.Processors.QDPDumpChainsProcessor
+    defaults [MaxPSteps = 10, MaxRSteps=10]
+
+# New PiTRSProcessor {{{2
+declare PiDependencyPairs = aprove.verification.dpframework.TRSProblem.Processors.PiDependencyPairsProcessor
+declare PiDPDependencyGraph = aprove.verification.dpframework.PiDPProblem.Processors.DependencyGraphProcessor
+declare PiUsableRules = aprove.verification.dpframework.PiDPProblem.Processors.UsableRulesProcessor
+declare PiDPPolo = aprove.verification.dpframework.PiDPProblem.Processors.PiDPPoloProcessor
+declare PiDPNegPolo = aprove.verification.dpframework.PiDPProblem.Processors.PiDPNegPoloProcessor
+declare PiDPToQDP = aprove.verification.dpframework.PiDPProblem.Processors.PiDPToQDPProcessor
+declare PPiDependencyPairs = aprove.verification.dpframework.TRSProblem.Processors.PPiDependencyPairsProcessor
+declare PPiDPToPiDP = aprove.verification.dpframework.PiDPProblem.Processors.PPiDPToPiDPProcessor
+
+# New QTRSProcessor {{{2
+declare TRSToQTRS = aprove.verification.theoremprover.TerminationProcedures.TRSToQTRSProcessor
+declare QTRSDirectTermination = aprove.verification.dpframework.TRSProblem.Processors.DirectTerminationProcessor
+    defaults [Order = LPO]
+
+declare QTRSDependencyPairs = aprove.verification.dpframework.TRSProblem.Processors.DependencyPairsProcessor
+declare QTRSATransformation = aprove.verification.dpframework.TRSProblem.Processors.ATransformationProcessor
+    defaults [BeComplete = True]
+declare QTRSUncurrying = aprove.verification.dpframework.TRSProblem.Processors.QTRSUncurryingProcessor
+    defaults [NoEta = True, BeComplete = True, ApplicativeSignature = True]
+
+declare QTRSRRRQ = aprove.verification.dpframework.TRSProblem.Processors.RRR_Q_Processor
+declare QTRSMatchbounds = aprove.verification.dpframework.TRSProblem.Processors.RFCMatchBoundsProcessor
+    defaults [NodeBound = 90, EdgeBound = 120]
+
+declare QTRSNoDPs = aprove.verification.dpframework.TRSProblem.Processors.NoDPsProcessor
+declare QTRSRRRPolo = aprove.verification.dpframework.TRSProblem.Processors.RRRPoloProcessor
+    defaults [Degree = 1
+             ,Range = 2
+             ,Autostrict = False
+             ,MaxSimpleDegree = 5
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare QTRSRRR = aprove.verification.dpframework.TRSProblem.Processors.QTRSRRRProcessor
+    defaults [Order = RPOS
+                 [Engine = MINISAT, Quasi = True, Afstype = MONOTONEAFS]
+             ]
+
+declare QTRSMultiRRR = aprove.verification.dpframework.TRSProblem.Processors.QTRSMultiRRRProcessor
+declare QTRSSemanticLabelling = aprove.verification.dpframework.TRSProblem.Processors.SemanticLabellingProcessor
+    defaults [Range = 2
+             ,CarrierSetSize = 2
+             ,AllowQuasi = True
+             ,Engine = SAT4J
+             ]
+
+declare QTRSSemLab = aprove.verification.dpframework.TRSProblem.Processors.SemLabProc
+    defaults [CarrierSetSize = -1, AllowQuasi = True, Engine = SAT4J]
+
+declare QTRSFlatCC = aprove.verification.dpframework.TRSProblem.Processors.FlatCCProcessor
+declare QTRSStandardRepresentation = aprove.verification.dpframework.TRSProblem.Processors.QTRSStandardRepresentationProcessor
+declare QTRSRootLabeling = aprove.verification.dpframework.TRSProblem.Processors.RootLabelingProcessor
+    defaults [Heuristic = LabelAll]
+
+declare QTRSAAECCNOC = aprove.verification.dpframework.TRSProblem.Processors.AAECCInnermostProcessor
+    defaults [Limit = 1]
+
+declare QTRSReverse = aprove.verification.dpframework.TRSProblem.Processors.ReverseProcessor
+declare QTRSStripSymbols = aprove.verification.dpframework.TRSProblem.Processors.StripSymbolsProcessor
+declare QTRSRightGround = aprove.verification.dpframework.TRSProblem.Processors.RightGroundProcessor
+declare QTRSReducingRHS = aprove.verification.dpframework.TRSProblem.Processors.ReducingRHSProcessor
+declare QTRSToCSR = aprove.verification.dpframework.TRSProblem.Processors.QTRSToCSRProcessor
+declare QTRSRRRSemlabPOLO = aprove.verification.dpframework.TRSProblem.Processors.RRRSemLabPoloProcessor
+declare QTRSLoopFinder = aprove.verification.dpframework.TRSProblem.Processors.QTRSLoopFinder
+    defaults [TotalLimit = 3, LeftLimit = 3, RightLimit = 3]
+declare QTRSRoofMatchBoundsTAProcessor = aprove.verification.dpframework.TRSProblem.Processors.QTRSRoofMatchBoundsTAProcessor
+    defaults [STAS = OSFEFS, CRS = KMS]
+declare QTRSIntroduceCE = aprove.verification.dpframework.TRSProblem.Processors.QTRSIntroduceCEProcessor
+
+# deprecated
+declare QTRSGroundTermRemover = aprove.verification.dpframework.TRSProblem.Processors.FromITRS.GroundTermRemover
+declare QTRSDuplicateArgsRemover = aprove.verification.dpframework.TRSProblem.Processors.FromITRS.DuplicateArgsRemover
+declare PathLength = aprove.verification.dpframework.DebugProcessors.FailProcessor
+declare QTRSUnneededArgumentRemover = aprove.verification.dpframework.TRSProblem.Processors.FromITRS.UnneededArgumentRemover
+declare QTRSRuleCombinationProcessor = aprove.verification.dpframework.TRSProblem.Processors.FromITRS.QTRSRuleCombinationProcessor
+declare QTRSNonLoop = aprove.verification.dpframework.TRSProblem.Processors.QTRSNonLoopProcessor
+
+# Random processors {{{2
+declare SRSNonLoop = aprove.verification.dpframework.TRSProblem.Processors.SRSNonLoopProcessor
+
+
+# Development/testing processors {{{2
+declare Yes = aprove.verification.dpframework.DebugProcessors.YesProcessor
+declare Fail = aprove.verification.dpframework.DebugProcessors.FailProcessor
+declare FailSubMachine = aprove.verification.dpframework.DebugProcessors.FailSubMachineProcessor
+declare DoNothing = aprove.verification.dpframework.DebugProcessors.DoNothingProcessor defaults [FibLoop = 0, SleepTime = 1000]
+declare PrintTime = aprove.verification.dpframework.DebugProcessors.PrintTimeProcessor
+declare QDPDummy = aprove.verification.dpframework.DebugProcessors.QDPDummyProcessor
+
+
+# New ETRSProcessor {{{2
+declare ETESToETRS = aprove.verification.theoremprover.TerminationProcedures.ETESToETRSProcessor
+declare ETRSDependencyPairs = aprove.verification.dpframework.TRSProblem.Processors.EquationalDependencyPairsProcessor
+declare ETRSDirectTermination = aprove.verification.dpframework.TRSProblem.Processors.EDirectTerminationProcessor
+    defaults [Order = ACRPOS]
+
+declare ETRSRRRPolo = aprove.verification.dpframework.TRSProblem.Processors.ERRRPoloProcessor
+    defaults [Degree = 1
+             ,Range = 2
+             ,Autostrict = False
+             ,MaxSimpleDegree = 5
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare ETRSToRelTRS = aprove.verification.dpframework.TRSProblem.Processors.ETRSToRelTRSProcessor
+
+
+# New EDPProcessor {{{2
+declare EDPDependencyGraph = aprove.verification.dpframework.DPProblem.Processors.EDependencyGraphProcessor
+declare EDPUsableRules = aprove.verification.dpframework.DPProblem.Processors.EUsableRulesProcessor
+declare EDPToQDPProblem = aprove.verification.dpframework.DPProblem.Processors.EDPToQDPProblemProcessor
+declare ESharpUsableEquations = aprove.verification.dpframework.DPProblem.Processors.ESharpUsableEquationsProcessor
+declare EDPPolo = aprove.verification.dpframework.DPProblem.Processors.EDPPoloProcessor
+    defaults [Degree = 1
+             ,Range = 1
+             ,Mode = SEARCHSTRICT
+             ,MaxSimpleDegree = 4
+             ,Active = True
+             ,MergeMutual = True
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare ECDPPolo = aprove.verification.dpframework.DPProblem.Processors.ECDPPoloProcessor
+    defaults [Degree = 1
+             ,Range = 1
+             ,Mode = SEARCHSTRICT
+             ,MaxSimpleDegree = 4
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare EDPUsableRulesRP = aprove.verification.dpframework.DPProblem.Processors.EUsableRulesReductionPairsProcessor
+    defaults [Degree = 1
+             ,Range = 2
+             ,MaxSimpleDegree = 5
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare EDPRuleRemoval = aprove.verification.dpframework.DPProblem.Processors.ERuleRemovalProcessor
+    defaults [Degree = 1
+             ,Range = 2
+             ,Mode = SEARCHSTRICT
+             ,MaxSimpleDegree = 5
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+
+# Theorem Prover Processors {{{2
+declare SymbolicEvaluation = aprove.verification.theoremprover.TheoremProverProcedures.SymbolicEvaluationUnderHypothesisProcessor
+declare InductionByAlgorithm = aprove.verification.theoremprover.TheoremProverProcedures.InductionByAlgorithmProcessor
+declare InductionByDatastructure = aprove.verification.theoremprover.TheoremProverProcedures.InductionByDataStructureProcessor
+declare INDFMLHeuristic = aprove.verification.theoremprover.TheoremProverProcedures.INDFMLHeuristicProcessor
+    defaults [Techniques = Both
+             ,UseCoverSets = True
+             ,Merging = True
+             ,SkipLAHypothesisHeuristic = False
+             ,EvaluateHypothesis = True
+             ,LooseRestrictions = False
+             ]
+
+declare Rippling = aprove.verification.theoremprover.TheoremProverProcedures.RipplingProcessor
+declare InverseSubstitution = aprove.verification.theoremprover.TheoremProverProcedures.InverseSubstitutionProcessor
+declare InverseFunctionality = aprove.verification.theoremprover.TheoremProverProcedures.InverseFunctionalityProcessor
+declare InverseWeakening = aprove.verification.theoremprover.TheoremProverProcedures.InverseWeakeningProcessor
+declare InverseSplitting = aprove.verification.theoremprover.TheoremProverProcedures.InverseSplittingProcessor
+declare InverseModusPonens = aprove.verification.theoremprover.TheoremProverProcedures.InverseModusPonensProcessor
+declare LemmaApplication = aprove.verification.theoremprover.TheoremProverProcedures.LemmaApplicationProcessor
+    defaults [Mode = OLD, MinimalHeuristic = 1, SequenceLength = 0]
+
+declare CaseAnalysis = aprove.verification.theoremprover.TheoremProverProcedures.CaseAnalysisProcessor
+declare HypothesisLifting = aprove.verification.theoremprover.TheoremProverProcedures.LiftingProcessor
+declare ConditionalEvaluation = aprove.verification.theoremprover.TheoremProverProcedures.ConditionalEvaluationProcessor
+declare LemmaSpeculation = aprove.verification.theoremprover.TheoremProverProcedures.LemmaSpeculationProcessor
+declare InteractiveLemmaApplication = aprove.verification.theoremprover.TheoremProverProcedures.InteractiveLemmaApplicationProcessor
+declare SymbolicOutermostEvaluation = aprove.verification.theoremprover.TheoremProverProcedures.SymbolicOutermostEvaluationUnderHypothesisProcessor
+declare SymbolicOutermostLAEvaluation = aprove.verification.theoremprover.TheoremProverProcedures.SymbolicOutermostLAEvaluationUnderHypothesisProcessor
+    defaults [HypothesesOutermostApplication = False]
+
+declare InductionByAlgorithmCoverSet = aprove.verification.theoremprover.TheoremProverProcedures.InductionByAlgorithmCoverSetProcessor
+declare IndirectProof = aprove.verification.theoremprover.TheoremProverProcedures.IndirectProofProcessor
+declare LASimplification = aprove.verification.theoremprover.TheoremProverProcedures.LASimplificationProcessor
+declare ConditionalRewriting = aprove.verification.theoremprover.TheoremProverProcedures.ConditionalRewritingProcessor
+declare LALemmaInsertion = aprove.verification.theoremprover.TheoremProverProcedures.LALemmaInsertionProcessor
+declare LALemmaJustInsertion = aprove.verification.theoremprover.TheoremProverProcedures.LALemmaJustInsertionProcessor
+declare HypothesesElimination = aprove.verification.theoremprover.TheoremProverProcedures.HypothesesEliminationProcessor
+declare ReverseImplicationApplication = aprove.verification.theoremprover.TheoremProverProcedures.ReverseImplicationApplicationProcessor
+declare InverseLASubstitution = aprove.verification.theoremprover.TheoremProverProcedures.InverseLASubstitutionProcessor
+declare ExtendedInverseLASubstitution = aprove.verification.theoremprover.TheoremProverProcedures.ExtendedInverseLASubstitutionProcessor
+
+
+# Haskell Processors {{{2
+declare HaskellLambdaReduction = aprove.verification.dpframework.HaskellProblem.Processors.LambdaReductionProcessor
+declare HaskellCaseReduction = aprove.verification.dpframework.HaskellProblem.Processors.CaseReductionProcessor
+declare HaskellIfReduction = aprove.verification.dpframework.HaskellProblem.Processors.IfReductionProcessor
+declare HaskellCondReduction = aprove.verification.dpframework.HaskellProblem.Processors.CondReductionProcessor
+declare HaskellIrrPatReduction = aprove.verification.dpframework.HaskellProblem.Processors.IrrPatReductionProcessor
+declare HaskellNewTypeReduction = aprove.verification.dpframework.HaskellProblem.Processors.NewTypeReductionProcessor
+declare HaskellLetReduction = aprove.verification.dpframework.HaskellProblem.Processors.LetReductionProcessor
+declare HaskellNumReduction = aprove.verification.dpframework.HaskellProblem.Processors.NumReductionProcessor
+declare HaskellBindingReduction = aprove.verification.dpframework.HaskellProblem.Processors.BindingReductionProcessor
+declare HaskellSplit = aprove.verification.dpframework.HaskellProblem.Processors.SplitProcessor
+declare HaskellNarrowing = aprove.verification.dpframework.HaskellProblem.Processors.NarrowingProcessor
+    defaults [Show = False
+             ,AddTypes = False
+             ,NodeLimit = 50000
+             ,MonoNestingDepth = 6
+             ,MultiNestingDepth = 3
+             ]
+declare HaskellToDOT = aprove.verification.dpframework.HaskellProblem.Processors.NarrowingToDOTProcessor
+    defaults [Show = False
+             ,AddTypes = False
+             ,NodeLimit = 50000
+             ,MonoNestingDepth = 6
+             ,MultiNestingDepth = 3
+             ]
+
+declare HaskellDumpGraph = aprove.verification.dpframework.HaskellProblem.Processors.HaskellDotDumpProcessor
+declare HaskellDumpJSON = aprove.verification.dpframework.HaskellProblem.Processors.HaskellJSONDumpProcessor
+
+declare HaskellBasicExport = aprove.verification.dpframework.HaskellProblem.Processors.ExportProcessor
+
+
+# Java Byte Code Processors
+declare BareJBCToJBC = aprove.verification.oldframework.Bytecode.Processors.BareJBCToJBCProcessor
+declare JBCToFiGraph = aprove.verification.oldframework.Bytecode.Processors.ToGraph.JBCToTerminationGraphProcessor
+declare FiGraphToITRS = aprove.verification.oldframework.Bytecode.Processors.ToSCC.TerminationGraphToSCCProcessor
+declare TerminationGraphToIDP = aprove.verification.oldframework.Bytecode.Processors.ToSCC.TerminationGraphToSCCProcessor
+declare SEGraphDataFlow = aprove.verification.oldframework.Bytecode.Processors.SEGraphFlowAnalysisProcessor
+
+declare JBCToTerminationGraph = aprove.verification.oldframework.Bytecode.Processors.ToGraph.JBCToTerminationGraphProcessor
+declare JBCNonTerm = aprove.verification.oldframework.Bytecode.Processors.ToGraph.JBCNonTermProcessor
+declare TerminationGraphToSCC = aprove.verification.oldframework.Bytecode.Processors.ToSCC.TerminationGraphToSCCProcessor
+declare TerminationSCCToIDPv1 = aprove.verification.oldframework.Bytecode.Processors.ToIDPv1.TerminationSCCToIDPv1Processor
+declare TerminationSCCToIDPv2 = aprove.verification.oldframework.Bytecode.Processors.ToIDPv2.TerminationSCCToIDPv2Processor
+declare TerminationSCCToMCNP = aprove.verification.oldframework.Bytecode.Processors.ToMCNP.TerminationSCCToMCNPProcessor
+declare IDPToMCS = aprove.verification.oldframework.Bytecode.Processors.ToMCNP.IDPToMCS
+declare TerminationSCCToKITTeL = aprove.verification.oldframework.Bytecode.Processors.ToIntTRS.TerminationSCCToIRSProcessor
+declare TerminationSCCToIntTRS = aprove.verification.oldframework.Bytecode.Processors.ToIntTRS.TerminationSCCToIRSProcessor
+declare TerminationSCCToIRS = aprove.verification.oldframework.Bytecode.Processors.ToIntTRS.TerminationSCCToIRSProcessor
+
+#Method Summary generation
+declare StartMethodSummary = aprove.verification.oldframework.Bytecode.Processors.ToMethodSummary.StartMethodSummaryProcessor
+declare JBCGraphEdgesToIntTrsForMethodSummary = aprove.verification.oldframework.Bytecode.Processors.ToMethodSummary.JBCGraphEdgesToIntTrsForMethodSummaryProcessor
+declare WeightedIntTrsToKoATLikeBackendForMethodSummary = aprove.verification.oldframework.Bytecode.Processors.ToMethodSummary.WeightedIntTrsToKoATLikeBackendForMethodSummaryProcessor
+declare TerminationGraphToComplexityRulesSetForMethodSummary = aprove.verification.oldframework.Bytecode.Processors.ToMethodSummary.TerminationGraphToComplexityRulesSetForMethodSummaryProcessor
+declare CESBackendForMethodSummary = aprove.verification.oldframework.CostEquationSystem.CESBackendForMethodSummaryProcessor
+
+declare TerminationGraphToComplexityRuleSet = aprove.verification.oldframework.Bytecode.Processors.ToComplexity.TerminationGraphToComplexityRuleSetProcessor
+declare JBCGraphEdgesToIntTrs = aprove.verification.oldframework.Bytecode.Processors.ToComplexity.JBCGraphEdgesToIntTrsProcessor
+declare IntTrsRemovePredefinedOpsOnLhs = aprove.verification.oldframework.IntTRS.IntTrsRemovePredefinedOpsOnLhsProcessor
+declare IntTrsToCpxIntTrs = aprove.verification.oldframework.IntTRS.IntTrsToCpxIntTrsProcessor
+
+declare WeightedIntTrsToKoAT = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsToKoATProcessor
+declare WeightedIntTrsToLoAT = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsToLoATProcessor
+declare WeightedIntTrsToTCT = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsToTCTProcessor
+declare WeightedIntTrsRemoveUnsupportedOperators = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsRemoveUnsupportedOperatorsProcessor
+declare WeightedIntTrsMoveArithmeticFromLhssToConstraints = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsMoveArithmeticFromLhssToConstraintsProcessor
+declare WeightedIntTrsLinearizeLhss = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsLinearizeLhssProcessor
+declare WeightedIntTrsStraightLineCodeCompression = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsStraightLineCodeCompressionProcessor
+declare WeightedIntTrsMoveArithmeticFromConstraintsToRhss = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsMoveArithmeticFromConstraintsToRhssProcessor
+declare WeightedIntTrsUnneededArgumentFilter = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsUnneededArgumentFilterProcessor
+declare WeightedIntTrsDuplicateArgumentFilter = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsDuplicateArgumentFilterProcessor
+declare WeightedIntTrsExprSimplification = aprove.verification.oldframework.WeightedIntTrs.WeightedIntTrsExprSimplificationProcessor
+
+declare TRSDumpProcessor = aprove.verification.oldframework.Bytecode.Processors.TRSDumpProcessor
+declare DotDumpProcessor = aprove.verification.oldframework.Bytecode.Processors.DotDumpProcessor
+declare JSONDumpProcessor = aprove.verification.oldframework.Bytecode.Processors.JSONDumpProcessor
+
+#CES
+declare CESBackend = aprove.verification.oldframework.CostEquationSystem.CESBackendProcessor
+
+# IntTRS Processors:
+declare KITTeLProcessor = aprove.verification.oldframework.IntTRS.KITTeLProcessor
+declare KITTeLTerminationGraphProcessor = aprove.verification.oldframework.IntTRS.TerminationGraph.IntTRSTerminationGraphProcessor
+declare IntTRSTerminationGraphProcessor = aprove.verification.oldframework.IntTRS.TerminationGraph.IntTRSTerminationGraphProcessor
+declare KITTeLPolynomialOrderProcessor = aprove.verification.oldframework.IntTRS.PoloRedPair.IntTRSPolynomialOrderProcessor
+declare IntTRSPolynomialOrderProcessor = aprove.verification.oldframework.IntTRS.PoloRedPair.IntTRSPolynomialOrderProcessor
+declare LinearReductionPairProcessor = aprove.verification.oldframework.IntTRS.LinearRedPair.LinearRedPairProcessor
+declare RankingProcessor = aprove.verification.oldframework.IntTRS.Ranking.RankingProcessor
+declare RankingReductionPairProcessor = aprove.verification.oldframework.IntTRS.RankingRedPair.RankingRedPairProcessor
+declare RankingRedPairProcessor = aprove.verification.oldframework.IntTRS.RankingRedPair.RankingRedPairProcessor
+declare IntTRSFreeVarFilter = aprove.verification.oldframework.IntTRS.IntTRSFreeVarFilter
+declare CCGraph = aprove.verification.oldframework.IntTRS.CommutativeComponents.CCProcessor
+declare IntTRSTo32BitIntTRS = aprove.verification.oldframework.IntTRS.BoundedInts.IntTRSTo32BitIntTRS
+declare IntTRSLabeling = aprove.verification.oldframework.IntTRS.Labeling.LabelingProcessor
+declare BoundedIntTRSToIntTRS = aprove.verification.oldframework.IntTRS.BoundedInts.BoundedIntTRSToIntTRSProcessor
+declare IntTRSUnneededArgumentFilter = aprove.verification.oldframework.IntTRS.IntTRSUnneededArgumentFilterProcessor
+declare IntTRSDuplicateArgumentFilter = aprove.verification.oldframework.IntTRS.IntTRSDuplicateArgumentFilterProcessor
+declare IntTRSConstantGroundArgumentFilter = aprove.verification.oldframework.IntTRS.IntTRSConstantGroundArgumentFilterProcessor
+declare IntTRSCompressor = aprove.verification.oldframework.IntTRS.IntTRSCompressionProcessor
+declare IntTRSNonPeriodicNonterm = aprove.verification.oldframework.IntTRS.Nonterm.IntTRSNonPeriodicNontermProcessor
+declare IntTRSPeriodicNonterm = aprove.verification.oldframework.IntTRS.Nonterm.IntTRSPeriodicNontermProcessor
+declare IntTRSCaseAnalysis = aprove.verification.oldframework.IntTRS.CaseAnalysis.CaseAnalysisProcessor
+declare SafetyIntTRSPolynomialOrderProcessor = aprove.verification.oldframework.IntTRS.SafetyRedPair.SafetyIntTRSPolynomialOrderProcessor
+declare IntTrsToCpxIntTrs = aprove.verification.oldframework.IntTRS.IntTrsToCpxIntTrsProcessor
+
+declare IRSToT2SysProcessor = aprove.verification.oldframework.IntTRS.Utils.IRSToT2SysProcessor
+declare IRSToIntClausesProcessor = aprove.verification.oldframework.IntTRS.Utils.IRSToIntClausesProcessor
+declare IRSToPushdownSMTProcessor = aprove.verification.oldframework.IntTRS.Utils.IRSToPushdownSMTProcessor
+
+# IRSwT Processors:
+declare IRSwTFormatTransformer = aprove.verification.oldframework.IRSwT.IRSwTFormatTransformer
+declare IRSwTSymbolRenaming = aprove.verification.oldframework.IRSwT.SymbolRenamingProcessor
+
+declare IRSwTOrder = aprove.verification.oldframework.IRSwT.Processors.IRSwTOrderProcessor
+declare IRSwTTrace = aprove.verification.oldframework.IRSwT.Processors.TraceTermination.TraceProcessor
+declare IRSwTTerminationDigraph = aprove.verification.oldframework.IRSwT.Processors.IRSwTTerminationDigraphProcessor
+declare IRSwTChaining = aprove.verification.oldframework.IRSwT.Processors.IRSwTChainingProcessor
+
+declare IRSwTToQDP = aprove.verification.oldframework.IRSwT.Processors.ExportProcessors.IRSwTToQDPProcessor
+    defaults [ NoSuccIfChanged = False ]
+
+declare IRSwTToIDP = aprove.verification.oldframework.IRSwT.Processors.ExportProcessors.IRSwTToIDPProcessor
+declare IRSwTToIntTRS = aprove.verification.oldframework.IRSwT.Processors.ExportProcessors.IRSwTToIntTRSProcessor
+
+declare IRSwTRemoveInts = aprove.verification.oldframework.IRSwT.Processors.FilterProcessors.IRSwTRemoveIntFilterProcessor
+declare IRSwTRemoveTerms = aprove.verification.oldframework.IRSwT.Processors.FilterProcessors.IRSwTRemoveTermFilterProcessor
+declare IRSwTRetainInts = aprove.verification.oldframework.IRSwT.Processors.FilterProcessors.IRSwTRetainIntFilterProcessor
+declare IRSwTRetainTerms = aprove.verification.oldframework.IRSwT.Processors.FilterProcessors.IRSwTRetainTermFilterProcessor
+
+declare IRSwTTempRemoveInts = aprove.verification.oldframework.IRSwT.Processors.FilterProcessors.IRSwTTempRemoveIntFilterProcessor
+declare IRSwTTempRemoveTerms = aprove.verification.oldframework.IRSwT.Processors.FilterProcessors.IRSwTTempRemoveTermFilterProcessor
+
+declare IRSwTReductionPair = aprove.verification.oldframework.IRSwT.Processors.IRSwTReductionPairProcessor
+    defaults [ Order = POLO
+                 [Engine = MINISAT[Version = 2], Degree = 1, Range = 2]
+              ,Allstrict = False
+             ]
+
+declare IRSwTTreeTraces = aprove.verification.oldframework.IRSwT.Processors.TreeTraces.IRSwTTreeTraceProcessor
+
+declare IRSwTSimpleDependencyGraph = aprove.verification.oldframework.IRSwT.Processors.IRSwTSimpleDependencyGraphProcessor
+
+declare T2 = aprove.input.Programs.t2.T2Processor
+declare LoAT = aprove.input.Programs.loat.LoATProcessor
+declare IRSToKoat = aprove.input.Programs.loat.IRSToKoatProcessor
+declare IRSNoOverapproximation = aprove.input.Programs.loat.IRSNoOverapproximationProcessor
+#deprecated!
+declare T2IntSysToIntTRS = aprove.input.Programs.t2.T2IntSysToIntTRSProcessor
+declare T2IntSysToCpxIntTrs = aprove.verification.complexity.CpxIntTrsProblem.Processors.T2IntSysToCpxIntTrsProcessor
+declare AddInterprocInvariants = aprove.verification.oldframework.IntTRS.InvariantGen.AddInterprocInvariantsProcessor
+
+# LoAT
+declare LoAT = aprove.input.Programs.loat.LoATProcessor
+declare IRSToKoat = aprove.input.Programs.loat.IRSToKoatProcessor
+declare IRSBindFreeVariables = aprove.input.Programs.loat.IRSBindFreeVariablesProcessor
+
+# LLVM
+declare LLVMMemorySafety = aprove.input.Programs.llvm.processors.LLVMMemorySafetyProcessor
+declare LLVMToSEGraph = aprove.input.Programs.llvm.processors.LLVMToSEGraphProcessor
+declare LLVMSEGraphToSCC = aprove.input.Programs.llvm.processors.LLVMSEGraphToSCCProcessor
+declare LLVMSEGraphToLasso = aprove.input.Programs.llvm.processors.LLVMSEGraphToLassoProcessor
+declare LLVMSEGraphToIntTRS = aprove.input.Programs.llvm.processors.LLVMSEGraphToIntTRSProcessor
+declare LLVMCpxGraphToIntTRS = aprove.input.Programs.llvm.processors.LLVMCpxGraphToIntTRSProcessor
+declare LLVMToTerminationGraph = aprove.input.Programs.llvm.processors.LLVMToSEGraphProcessor
+declare LLVMToCpxGraph = aprove.input.Programs.llvm.processors.LLVMToCpxGraphProcessor
+declare LLVMTerminationGraphToSCC = aprove.input.Programs.llvm.processors.LLVMSEGraphToSCCProcessor
+declare LLVMSCCToITRS = aprove.input.Programs.llvm.processors.LLVMSCCToITRS
+declare LLVMSCCToIntTRS = aprove.input.Programs.llvm.processors.LLVMSCCToIntTRSProcessor
+declare LLVMLassoToIntTRS = aprove.input.Programs.llvm.processors.LLVMLassoToIntTRSProcessor
+declare LLVMTerminationSCCToITRS = aprove.input.Programs.llvm.processors.LLVMSCCToITRS
+declare LLVMTerminationSCCToKITTeL = aprove.input.Programs.llvm.processors.LLVMSCCToIntTRSProcessor
+declare LLVMTerminationSCCToIntTRS = aprove.input.Programs.llvm.processors.LLVMSCCToIntTRSProcessor
+declare LLVMNontermination = aprove.input.Programs.llvm.processors.LLVMNonterminationProcessor
+declare LLVMSEGraphToJSON = aprove.input.Programs.llvm.processors.LLVMSEGraphToJSONProcessor
+
+# C
+declare CToLLVM = aprove.input.Programs.c.CToLLVMProcessor
+declare CToLLVMCpx = aprove.input.Programs.c.CToLLVMComplexityProcessor
+declare CToIRS = aprove.input.Programs.c.CToIRSProcessor
+
+# Simplifier Processors {{{2
+declare SynonymSimplifier = aprove.verification.theoremprover.Simplifier.SynonymSimplifier
+declare SymbolicSimplifier = aprove.verification.theoremprover.Simplifier.SymbolicSimplifier
+declare RecursionShiftSimplifier = aprove.verification.theoremprover.Simplifier.RecursionShiftSimplifier
+declare ParameterEnlargementSimplifier = aprove.verification.theoremprover.Simplifier.ParameterEnlargementSimplifier
+declare IdentityTransformationSimplifier = aprove.verification.theoremprover.Simplifier.IdentityTransformationSimplifier
+declare FunctionMergeSimplifier = aprove.verification.theoremprover.Simplifier.FunctionMergeSimplifier
+declare FunctionCombinationSimplifier = aprove.verification.theoremprover.Simplifier.FunctionCombinationSimplifier
+declare FixedValueSimplifier = aprove.verification.theoremprover.Simplifier.FixedValueSimplifier
+declare ContextSplitSimplifier = aprove.verification.theoremprover.Simplifier.ContextSplitSimplifier
+declare ContextMoveSimplifier = aprove.verification.theoremprover.Simplifier.ContextMoveSimplifier
+declare CaseMergeSimplifier = aprove.verification.theoremprover.Simplifier.CaseMergeSimplifier
+declare BoolPredefSimplifier = aprove.verification.theoremprover.Simplifier.BoolPredefSimplifier
+declare ArgumentEliminationSimplifier = aprove.verification.theoremprover.Simplifier.ArgumentEliminationSimplifier
+declare TRSToSimplifierProblem = aprove.verification.theoremprover.Simplifier.TRSToSimplifierProblem
+declare DeleteUnneededFunctions = aprove.verification.theoremprover.Simplifier.DeleteUnneededFunctions
+
+
+# CSR Processors {{{2
+declare CSRToQTRS = aprove.verification.dpframework.TRSProblem.Processors.CSRToQTRSProcessor
+    defaults [Transformation = Zantema]
+
+declare CSRInnermost = aprove.verification.dpframework.TRSProblem.Processors.CSRInnermostProcessor
+declare CSRRRRPolo = aprove.verification.dpframework.TRSProblem.Processors.CSRRRRPoloProcessor
+    defaults [Degree = 1
+             ,Range = 2
+             ,Autostrict = False
+             ,MaxSimpleDegree = 5
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare CSRRRR = aprove.verification.dpframework.TRSProblem.Processors.CSRRRRProcessor
+    defaults [Order = POLO[Engine = MINISAT]]
+
+declare CSRNonTermination = aprove.verification.dpframework.TRSProblem.Processors.CSRNonTerminationProcessor
+
+
+# Outermost TRS Processor {{{2
+declare OTRSToQTRS = aprove.verification.dpframework.TRSProblem.Processors.OTRSToQTRSProcessor
+    defaults [Transformation = Thiemann]
+
+declare OTRSNonTerminationProcessor = aprove.verification.dpframework.TRSProblem.Processors.OTRSNonTerminationProcessor
+declare OTRSToQDPTerminationGraphProcessor = aprove.verification.dpframework.TRSProblem.Processors.OTRSToQDPTerminationGraphProcessor
+    defaults [Strategy = Linearize
+             ,MaxNodesBeforeFinalization = 100
+             ,UseExclusionSubstitutions = True
+             ,PathForDebugOutputs = "/tmp"
+             ]
+
+
+declare OTRSToCSR = aprove.verification.dpframework.TRSProblem.Processors.OTRSToCSRProcessor
+
+
+# Generalized TRS Processor {{{2
+declare GTRSToQTRS = aprove.verification.dpframework.TRSProblem.Processors.GTRSToQTRSProcessor
+
+
+# Conditional TRS Processor {{{2
+declare CTRSToQTRS = aprove.verification.dpframework.TRSProblem.Processors.CTRSToQTRSProcessor
+declare CTRSToCSR = aprove.verification.dpframework.TRSProblem.Processors.CTRSToCSRProcessor
+
+
+# Heuristic Processor {{{2
+declare WST06Heuristic = aprove.verification.dpframework.Heuristics.Processors.WST06Heuristic
+declare WST07Heuristic = aprove.verification.dpframework.Heuristics.Processors.RunDefaultStrategyForObligation
+declare CSR06Heuristic = aprove.verification.dpframework.Heuristics.Processors.CSR06Heuristic
+declare MRR06Heuristic = aprove.verification.dpframework.Heuristics.Processors.MRR06Heuristic
+    defaults [AllowATransformation = True]
+declare RunDefaultStrategyForObligation = aprove.verification.dpframework.Heuristics.Processors.RunDefaultStrategyForObligation
+
+
+# Prolog {{{2
+declare OrTransformation = aprove.input.Programs.prolog.processors.OrTransformer
+declare IfThenElseTransformation = aprove.input.Programs.prolog.processors.IfThenElseTransformer
+declare NotTransformation = aprove.input.Programs.prolog.processors.NotTransformer
+declare CallTransformation = aprove.input.Programs.prolog.processors.CallTransformer
+declare FailTransformation = aprove.input.Programs.prolog.processors.FailTransformer
+declare UnifyTransformation = aprove.input.Programs.prolog.processors.UnifyTransformer
+declare CutElimination = aprove.input.Programs.prolog.processors.CutEliminator
+declare PredefinedPredicateTransformation = aprove.input.Programs.prolog.processors.IntegerArithmeticTransformer
+declare IntegerArithmeticTransformation = aprove.input.Programs.prolog.processors.IntegerArithmeticTransformer
+declare UndefinedPredicateHandling = aprove.input.Programs.prolog.processors.UndefinedPredicateHandler
+declare NewPrologToPiTRS = aprove.input.Programs.prolog.processors.PrologToPiTRSTransformer
+declare PrologToPrologProblem = aprove.input.Programs.prolog.processors.PrologToPrologProblemTransformer
+declare PrologToLP = aprove.input.Programs.prolog.processors.PrologToLPTransformer
+declare PrologToPiTRSViaGraph = aprove.input.Programs.prolog.processors.PrologToPiTRSViaGraphTransformer
+declare PrologToTRS = aprove.input.Programs.prolog.processors.PrologToTRSTransformer
+declare PrologToDTProblem = aprove.input.Programs.prolog.processors.PrologToDTProblemTransformer
+    defaults [ShowTree = False, NoGroundLoss = False]
+declare PrologToCpxTrsProblem = aprove.input.Programs.prolog.processors.PrologToCpxTrsProblemTransformer
+    defaults [ShowTree = False]
+declare PrologToCdtProblem = aprove.input.Programs.prolog.processors.PrologToCdtProblemTransformer
+    defaults [ShowTree = False]
+declare BuiltinConflictTransformation = aprove.input.Programs.prolog.processors.BuiltinConflictTransformer
+    defaults [Complexity = False]
+declare PrologToPPiTRS = aprove.input.Programs.prolog.processors.PrologToPPiTRSTransformer
+    defaults [ModeAnalysis = True]
+declare PrologToIRSwT = aprove.input.Programs.prolog.processors.toirswt.PrologToIRSwTTransformer
+declare LPReordering = aprove.input.Programs.prolog.processors.LPReorderTransformer
+declare LPReorderingForDeterminacy = aprove.input.Programs.prolog.processors.LPReorderForDeterminacyTransformer
+declare NoRecursion = aprove.input.Programs.prolog.processors.NoRecursionProver
+declare PrologDeterminacy = aprove.input.Programs.prolog.processors.PrologDeterminacyProcessor
+declare PrologToGraph = aprove.input.Programs.prolog.processors.PrologToGraphProcessor
+declare PrologGraphToJSON = aprove.input.Programs.prolog.processors.PrologGraphToJSONProcessor
+
+# Diophantine solver Pseudo-Processor {{{2
+declare Diophantine = aprove.verification.diophantine.DiophantineProcessor
+    defaults [Simplification = MAXIMUM
+             ,StripExponents = True
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,Simplify = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ,AppendForTimes = True
+                 ,Tracking = True
+                 ,ProductAbstraction = False
+                 ]
+             ]
+
+declare DioRat = aprove.verification.diophantine.rat.RatProcessor
+    defaults [Solver = MBYNTOFORMULA]
+
+
+# Context-Sensitive Dependency Pair Processors {{{2
+declare CSRToQCSDP = aprove.verification.dpframework.CSDPProblem.Processors.CSRToQCSDPProblem
+declare QCSDPToQDP = aprove.verification.dpframework.CSDPProblem.Processors.QCSDPProblemToQDPProblemProcessor
+declare QCSDependencyGraph = aprove.verification.dpframework.CSDPProblem.Processors.QCSDependencyGraphProcessor
+declare QCSUsableRules = aprove.verification.dpframework.CSDPProblem.Processors.QCSUsableRulesProcessor
+declare QCSReductionPair = aprove.verification.dpframework.CSDPProblem.Processors.QCSReductionPairProcessor
+    defaults [Order = POLO
+                 [Engine = MINISAT[Version = 2], Degree = 1, Range = 2]
+             ]
+
+declare QCSDPPoloRuleRemoval = aprove.verification.dpframework.CSDPProblem.Processors.QCSDPPoloRuleRemovalProcessor
+    defaults [Degree = 1
+             ,Range = 2
+             ,Mode = SEARCHSTRICT
+             ,MaxSimpleDegree = 5
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare QCSDPSubterm = aprove.verification.dpframework.CSDPProblem.Processors.QCSDPSubtermProcessor
+declare QCSDPNeededSymbols = aprove.verification.dpframework.CSDPProblem.Processors.QCSDPNeededSymbolsProcessor
+declare QCSDPInstantiation = aprove.verification.dpframework.CSDPProblem.Processors.QCSDPInstantiationProcessor
+    defaults [ECapMu = ICAPMU]
+
+declare QCSDPForwardInstantiation = aprove.verification.dpframework.CSDPProblem.Processors.QCSDPForwardInstantiationProcessor
+    defaults [ECapMu = ICAPMU]
+
+declare QCSDPNarrowing = aprove.verification.dpframework.CSDPProblem.Processors.QCSDPNarrowingProcessor
+declare QCSDPPairNarrowing = aprove.verification.dpframework.CSDPProblem.Processors.QCSDPPairNarrowingProcessor
+    defaults [ECapMu = ICAPMU, IncreasingAllowed = False]
+
+declare QCSDPInnermost = aprove.verification.dpframework.CSDPProblem.Processors.QCSDPInnermost
+
+
+# Clousot Benigni CLS Processors {{{2
+declare CLSToCTRS = aprove.verification.dpframework.CLSProblem.Processors.CLSToCTRSProcessor
+declare CLSToITRS = aprove.verification.dpframework.CLSProblem.Processors.CLSToITRSProcessor
+declare CLSToQTRS = aprove.verification.dpframework.CLSProblem.Processors.CLSToQTRSProcessor
+declare CLSToQDP = aprove.verification.dpframework.CLSProblem.Processors.CLSToQDPProcessor
+declare CLSToPATRS = aprove.verification.dpframework.CLSProblem.Processors.CLSToPATRSProcessor
+declare CLSSlicing = aprove.verification.dpframework.CLSProblem.Processors.CLSSlicingProcessor
+    defaults [RestoreVarCondition = True]
+
+
+# PATRS Processors {{{2
+declare PATRSUnsat = aprove.verification.dpframework.PATRSProblem.Processors.PATRSUnsatProcessor
+declare PATRSReducible = aprove.verification.dpframework.PATRSProblem.Processors.PATRSReducibleProcessor
+declare PATRSDP = aprove.verification.dpframework.PATRSProblem.Processors.PATRSDPProcessor
+declare PATRSToITRS = aprove.verification.dpframework.PATRSProblem.Processors.PATRSToITRSProcessor
+
+
+# PADP Processors {{{2
+declare PADPEDG = aprove.verification.dpframework.PADPProblem.Processors.PADPEDGProcessor
+declare PADPReducing = aprove.verification.dpframework.PADPProblem.Processors.PADPReducingProcessor
+declare PADPSubterm = aprove.verification.dpframework.PADPProblem.Processors.PADPSubtermProcessor
+declare PADPPolo = aprove.verification.dpframework.PADPProblem.Processors.PADPPoloProcessor
+declare PADPMonotonicPolo = aprove.verification.dpframework.PADPProblem.Processors.PADPMonotonicPoloProcessor
+declare PADPPairNarrowing = aprove.verification.dpframework.PADPProblem.Processors.PADPPairNarrowingProcessor
+declare PADPUnsat = aprove.verification.dpframework.PADPProblem.Processors.PADPUnsatProcessor
+declare PADPPlainPolo = aprove.verification.dpframework.PADPProblem.Processors.PADPPlainPoloProcessor
+declare PADPFilter = aprove.verification.dpframework.PADPProblem.Processors.PADPFilterProcessor
+declare PADPMatro = aprove.verification.dpframework.PADPProblem.Processors.PADPMatroProcessor
+declare PADPPlainMatro = aprove.verification.dpframework.PADPProblem.Processors.PADPPlainMatroProcessor
+
+
+# CSPATRS Processors {{{2
+declare CSPATRSToPATRS = aprove.verification.dpframework.PATRSProblem.Processors.CSPATRSToPATRSProcessor
+declare CSPATRSUnsat = aprove.verification.dpframework.PATRSProblem.Processors.CSPATRSUnsatProcessor
+declare CSPATRSReducible = aprove.verification.dpframework.PATRSProblem.Processors.CSPATRSReducibleProcessor
+declare CSPATRSDP = aprove.verification.dpframework.PATRSProblem.Processors.CSPATRSDPProcessor
+
+
+# CSPADP Processors {{{2
+declare CSPADPEDG = aprove.verification.dpframework.PADPProblem.Processors.CSPADPEDGProcessor
+declare CSPADPSubterm = aprove.verification.dpframework.PADPProblem.Processors.CSPADPSubtermProcessor
+declare CSPADPPolo = aprove.verification.dpframework.PADPProblem.Processors.CSPADPPoloProcessor
+declare CSPADPMonotonicPolo = aprove.verification.dpframework.PADPProblem.Processors.CSPADPMonotonicPoloProcessor
+declare CSPADPPlainPolo = aprove.verification.dpframework.PADPProblem.Processors.CSPADPPlainPoloProcessor
+declare CSPADPFilter = aprove.verification.dpframework.PADPProblem.Processors.CSPADPFilterProcessor
+declare CSPADPMatro = aprove.verification.dpframework.PADPProblem.Processors.CSPADPMatroProcessor
+declare CSPADPPlainMatro = aprove.verification.dpframework.PADPProblem.Processors.CSPADPPlainMatroProcessor
+
+
+# IDP / ITRS Processors {{{2
+declare IDPPolyIntInterpretationSwitch = aprove.verification.idpframework.Processors.IDPPolyIntInterpretationSwitch
+
+declare IDP2KnowledgeGeneration = aprove.verification.idpframework.Processors.GraphProcessors.ItpfSchedulerGraphProcessor
+    defaults [Strategy = KNOWLEDGE_GENERATION
+    ]
+
+declare IDP2ItpfScheduler = aprove.verification.idpframework.Processors.GraphProcessors.ItpfSchedulerGraphProcessor
+declare IDP2BoolOp = aprove.verification.idpframework.Processors.GraphProcessors.BoolOpProcessor
+declare IDP2VarReduct = aprove.verification.idpframework.Processors.GraphProcessors.VarReductProcessor
+declare IDP2Unify = aprove.verification.idpframework.Processors.GraphProcessors.UnifyProcessor
+declare IDP2RelOp = aprove.verification.idpframework.Processors.GraphProcessors.RelOpProcessor
+declare IDP2DisjunctionRemoval = aprove.verification.idpframework.Processors.GraphProcessors.DisjunctionRemovalProcessor
+declare IDP2TypeInference = aprove.verification.idpframework.Processors.Filters.TypeInference
+declare IDP2LongNamesFilter = aprove.verification.idpframework.Processors.Filters.LongNamesFilter
+declare IDP2DeepFSBisimulation = aprove.verification.idpframework.Processors.Filters.DeepFSBisimulation
+declare IDP2FreeVariablesFilter = aprove.verification.idpframework.Processors.Filters.FreeVariablesFilter
+declare IDP2DupplicateArgsFilter = aprove.verification.idpframework.Processors.Filters.DupplicateArgsFilter
+declare IDP2ConstantArgsFilter = aprove.verification.idpframework.Processors.Filters.ConstantArgsFilter
+declare IDP2VariablePartitioning = aprove.verification.idpframework.Processors.Filters.VariablePartitioning
+declare IDP2SCC = aprove.verification.idpframework.Processors.GraphProcessors.SCCProcessor
+declare IDP2UsableRules = aprove.verification.idpframework.Processors.GraphProcessors.UsableRulesProcessor
+declare IDP2InfPaths = aprove.verification.idpframework.Processors.GraphProcessors.EdgeCollapse.InfPathCollapse
+	defaults [MaxEdgeGain = 2]
+declare IDP2RewritePaths = aprove.verification.idpframework.Processors.GraphProcessors.EdgeCollapse.RewritePathCollapse
+	defaults [MaxEdgeGain = 2]
+declare IDP2RewriteInfPaths = aprove.verification.idpframework.Processors.GraphProcessors.EdgeCollapse.RewriteInfPathCollapse
+declare IDP2NonInf = aprove.verification.idpframework.Processors.NonInf.IDPNonInf
+declare IDP2EmptyProblem = aprove.verification.idpframework.Processors.EmptyProblemProcessor
+declare IDP2toQDP = aprove.verification.idpframework.Processors.IDP2toQDPProcessor
+declare IDP2LoopUnroll = aprove.verification.idpframework.Processors.GraphProcessors.LoopUnroll.LoopUnrollProcessor
+
+
+
+declare IDPMNOC = aprove.verification.dpframework.IDPProblem.Processors.IDPMNOCProcessor
+declare IDPNodeCollapse = aprove.verification.dpframework.IDPProblem.Processors.IDPNodeCollapseProcessor
+declare IDPtoQDP = aprove.verification.dpframework.IDPProblem.Processors.IDPtoQDPProcessor
+declare IDPCapGraph = aprove.verification.dpframework.IDPProblem.Processors.ICapGraphProcessor
+declare IDPDependencyGraph = aprove.verification.dpframework.IDPProblem.Processors.IDependencyGraphProcessor
+declare IDPNonInf = aprove.verification.dpframework.IDPProblem.Processors.nonInf.IDPNonInfProcessor
+declare IDPNonInfStrategySelect = aprove.verification.dpframework.IDPProblem.Processors.nonInf.IDPNonInfStrategySelect
+declare IDPUsableRules = aprove.verification.dpframework.IDPProblem.Processors.IDPUsableRulesProcessor
+declare IDPItpfScheduler = aprove.verification.dpframework.IDPProblem.Processors.ItpfSchedulerGraphProcessor
+declare IDPReductionPair = aprove.verification.dpframework.IDPProblem.Processors.IDPReductionPairProcessor
+    defaults [ Order = POLO
+                 [Engine = MINISAT[Version = 2], Degree = 1, Range = 2]
+              ,Allstrict = False
+              ,Active = False
+             ]
+declare IDPMCNP = aprove.verification.dpframework.IDPProblem.Processors.IDPMCNPProcessor
+    defaults [DropBooleanSymbols = True, DropContextSensitiveSymbols = True]
+
+
+declare ITRSConstantFolding = aprove.verification.dpframework.IDPProblem.Processors.ITRSConstantFoldingProcessor
+declare ITRSToIDP = aprove.verification.dpframework.IDPProblem.Processors.ITRStoIDPProcessor
+declare ITRSToIDPV2 = aprove.verification.dpframework.IDPProblem.Processors.ITRStoIDPV2Processor
+declare ITRStoQTRS = aprove.verification.dpframework.IDPProblem.Processors.ITRStoQTRSProcessor
+declare ITRSDuplicateArgsRemover = aprove.verification.dpframework.IDPProblem.Processors.JBCPreprocessing.DuplicateArgsRemover
+declare ITRSGroundTermRemover = aprove.verification.dpframework.IDPProblem.Processors.JBCPreprocessing.GroundTermRemover
+declare ITRSUnneededArgumentRemover = aprove.verification.dpframework.IDPProblem.Processors.JBCPreprocessing.UnneededArgumentRemover
+declare ITRSFilter = aprove.verification.dpframework.IDPProblem.Processors.ITRSFilterProcessor
+declare ITRSFreeVarFilter = aprove.verification.dpframework.IDPProblem.Processors.ITRSFreeVarFilterProcessor
+declare ITRSFSBisimulation = aprove.verification.dpframework.IDPProblem.Processors.ITRSFSBisimulation
+declare ITRSUnchangedArgsRemover = aprove.verification.dpframework.IDPProblem.Processors.JBCPreprocessing.UnchangedArgsRemover
+declare ITRSSCCSplitter = aprove.verification.dpframework.IDPProblem.Processors.JBCPreprocessing.SCCSplitter
+
+# Processors for monotonicity constraint transition systems {{{2
+declare MCSMCNP = aprove.verification.dpframework.MCSProblem.Processors.MCSMCNPProcessor
+declare MCSToITRS = aprove.verification.dpframework.MCSProblem.Processors.MCSToITRSProcessor
+
+# Processors for relative termination {{{2
+declare RelTRSEmptinessCheck = aprove.verification.dpframework.TRSProblem.Processors.RelTRSEmptinessCheckProcessor
+declare RelTRSSCleaner = aprove.verification.dpframework.TRSProblem.Processors.RelTRSSCleanerProcessor
+declare RelTRSSNonDuplifier = aprove.verification.dpframework.TRSProblem.Processors.RelTRSSNonDuplifierProcessor
+declare RelRR = aprove.verification.dpframework.TRSProblem.Processors.RelRRProcessor
+declare RelTRSQCCheck = aprove.verification.dpframework.TRSProblem.Processors.RelTRSQCCheckProcessor
+declare RelTRSLoopFinder = aprove.verification.dpframework.TRSProblem.Processors.RelTRSLoopFinder
+    defaults [TotalLimit = 3, LeftLimit = 3, RightLimit = 3]
+
+declare RelTRSEmission = aprove.verification.dpframework.TRSProblem.Processors.RelTRSEmissionProcessor
+declare RelTRSFlatCC = aprove.verification.dpframework.TRSProblem.Processors.RelFlatCCProcessor
+declare RelTRSNonTermHeuristic = aprove.verification.dpframework.TRSProblem.Processors.RelTRSNonTermHeuristicsProcessor
+declare RelTRSSemanticLabelling = aprove.verification.dpframework.TRSProblem.Processors.RelTRSSemanticLabellingProcessor
+declare RelTRSRootLabeling = aprove.verification.dpframework.TRSProblem.Processors.RelTRSRootLabelingProcessor
+declare RelTRStoQDP = aprove.verification.dpframework.TRSProblem.Processors.RelTRStoQDPProcessor
+declare RelTRSUnion = aprove.verification.dpframework.TRSProblem.Processors.RelTRSUnionProcessor
+declare RelSRSReverse = aprove.verification.dpframework.TRSProblem.Processors.RelSRSReverseProcessor
+
+#RDPP Processors
+declare RDTDerelatifyingProcessor = aprove.verification.relative.RDTProblem.Processors.RDTDerelatifyingProcessor
+declare RDTDepGraphProcessor = aprove.verification.relative.RDTProblem.Processors.RDTDepGraphProcessor
+declare RDTReductionPairProcessor = aprove.verification.relative.RDTProblem.Processors.RDTReductionPairProcessor
+
+#RelADPP Processors
+declare RelTRStoRelADPProcessor = aprove.verification.dpframework.TRSProblem.Processors.RelTRStoRelADPProcessor
+declare RelADPDerelatifyToDPsProcessor = aprove.verification.relative.RelADPProblem.Processors.RelADPDerelatifyToDPsProcessor
+declare RelADPDerelatifyInADPsProcessor = aprove.verification.relative.RelADPProblem.Processors.RelADPDerelatifyInADPsProcessor
+declare RelADPDepGraphProcessor = aprove.verification.relative.RelADPProblem.Processors.RelADPDepGraphProcessor
+declare RelADPReductionPairProcessor = aprove.verification.relative.RelADPProblem.Processors.RelADPReductionPairProcessor
+declare RelADPRuleRemovalProcessor = aprove.verification.relative.RelADPProblem.Processors.RelADPRuleRemovalProcessor
+declare RelADPPOLODerelToDPsWithAfsProcessor = aprove.verification.relative.RelADPProblem.Processors.RelADPPOLODerelToDPsWithAfsProcessor
+declare RelADPRPOSDerelToDPsWithAfsProcessor = aprove.verification.relative.RelADPProblem.Processors.RelADPRPOSDerelToDPsWithAfsProcessor
+
+
+# Special processors relevant to certification only {{{2
+declare QDPNonSCC = aprove.verification.dpframework.DPProblem.Processors.QDPNonSCCProcessor
+
+
+# Triples Processors {{{2
+declare DependencyTriples = aprove.input.Programs.triples.processors.DependencyTriplesProcessor
+declare TriplesToPiDP = aprove.input.Programs.triples.processors.TriplesToPiDPTransformer
+declare TriplesDependencyGraph = aprove.input.Programs.triples.processors.DependencyGraphProcessor
+declare TriplesReductionPair = aprove.input.Programs.triples.processors.ReductionPairProcessor
+declare UndefinedPredicateRemoval = aprove.input.Programs.triples.processors.UndefinedPredicateInTriplesTransformer
+declare TriplesToLP = aprove.input.Programs.triples.processors.TriplesToLPTransformer
+
+
+# Complexity {{{2
+declare CpxTrsStartterm = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsStarttermProcessor
+declare CpxTrsO1 = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsO1Processor
+declare CpxTrsDirect = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsDirectProcessor
+declare CpxTrsToQtrs = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsToQtrsProcessor
+declare CpxTrsNonTermination = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsNonTerminationProcessor
+declare CpxTrsMatchBounds = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsMatchBoundsProcessor
+    defaults [ Reversed = False
+             , SplitEnds = False
+             , ForwardScan = True
+             , BackwardScan = True
+             , MaxMatchBound = 7 # maximum seen 6
+             , MaxNodes = 20000 # maximum seen 18020
+             , MaxIterations = 30 # maximum seen 25
+             ]
+declare CpxTrsMatchBoundsTA = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsMatchBoundsTAProcessor
+    defaults [STAS = RC_SPLIT, CRS = KMS]
+declare CpxIntTrsAddInterprocInvariantsProcessor = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsAddInterprocInvariantsProcessor
+
+declare CpxTrsToCpxRelTrs = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsToCpxRelTrsProcessor
+
+declare RuntimeComplexityTrsNarrowingTermination = aprove.verification.complexity.CpxTrsProblem.Processors.RuntimeComplexityTrsNarrowingTerminationProcessor
+declare CpxTrsRcToIrc = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsRcToIrcProcessor
+declare CpxTrsNestedDefinedSymbol = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsNestedDefinedSymbolProcessor
+declare CpxTrsDependencyGraph = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsDependencyGraphProcessor
+declare CpxTrsNonCtorToCtor = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsNonCtorToCtorProcessor
+
+declare CpxRelTrsSTermination = aprove.verification.complexity.LowerBounds.CpxRelTrsSTerminationProcessor
+
+declare CpxTrsRenaming = aprove.verification.complexity.LowerBounds.CpxTrsRenamingProcessor
+declare CpxTrsTypeInference = aprove.verification.complexity.LowerBounds.Types.CpxTrsTypeInferenceProcessor
+declare CpxTrsLowerBoundsSlicing = aprove.verification.complexity.LowerBounds.Slicing.CpxTrsLowerBoundsSlicingProcessor
+declare CpxTrsLowerBoundsOrder = aprove.verification.complexity.LowerBounds.CpxTrsLowerBoundsOrderProcessor
+declare CpxTrsLowerBounds = aprove.verification.complexity.LowerBounds.CpxTrsLowerBoundsProcessor
+
+declare CpxRelTrsToDecreasingLoopProblem = aprove.verification.complexity.LowerBounds.CpxRelTrsToDecreasingLoopProblemProcessor
+declare CpxTrsDecreasingLoop = aprove.verification.complexity.LowerBounds.CpxTrsDecreasingLoopProcessor
+declare LowerBoundPropagation = aprove.verification.complexity.LowerBounds.LowerBoundPropagationProcessor
+
+declare DerivationalComplexityIsAtLeastLinear = aprove.verification.complexity.CpxTrsProblem.Processors.DerivationalComplexityIsAtLeastLinearProcessor
+declare DerivationalComplexityToRuntimeComplexity = aprove.verification.complexity.CpxTrsProblem.Processors.DerivationalComplexityToRuntimeComplexityProcessor
+
+declare CpxGTrsExtraVar = aprove.verification.complexity.CpxGTrsProblem.CpxGTrsExtraVarProcessor
+
+declare QTRSToWdp = aprove.verification.complexity.WdpCProblem.Processors.QTRSToWdpProcessor
+declare WdpReductionPairOrder = aprove.verification.complexity.WdpCProblem.Processors.WdpReductionPairOrderProcessor
+declare WdpRestrictedOrder = aprove.verification.complexity.WdpCProblem.Processors.WdpRestrictedOrderProcessor
+declare WdpUsableRules = aprove.verification.complexity.WdpCProblem.Processors.WdpUsableRulesProcessor
+declare CpxTrsToCdp = aprove.verification.complexity.CdpProblem.Processors.CpxTrsToCdpProcessor
+declare CdpDirectComplexity = aprove.verification.complexity.CdpProblem.Processors.CdpDirectComplexityProcessor
+declare CdpUsableRules = aprove.verification.complexity.CdpProblem.Processors.CdpUsableRulesProcessor
+declare CpxTrsSDirectGcdpComplexity = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsDirectGcdpComplexityProcessor
+
+declare AcdtForwardInstantiation = aprove.verification.complexity.AcdtProblem.Processors.AcdtForwardInstantiationProcessor
+declare AcdtGraphRemoveDanglingNodes = aprove.verification.complexity.AcdtProblem.Processors.AcdtGraphRemoveDanglingNodesProcessor
+declare AcdtGraphRemoveTrailingTupleparts = aprove.verification.complexity.AcdtProblem.Processors.AcdtGraphRemoveTrailingTuplepartsProcessor
+declare AcdtGraphSplit = aprove.verification.complexity.AcdtProblem.Processors.AcdtGraphSplitProcessor
+declare AcdtGraphSplitRhs = aprove.verification.complexity.AcdtProblem.Processors.AcdtGraphSplitRhsProcessor
+declare AcdtInstantiation = aprove.verification.complexity.AcdtProblem.Processors.AcdtInstantiationProcessor
+declare AcdtOrder = aprove.verification.complexity.AcdtProblem.Processors.AcdtOrderProcessor
+declare AcdtPrintGraph = aprove.verification.complexity.AcdtProblem.Processors.AcdtPrintGraphProcessor
+declare AcdtSimpleNonterm = aprove.verification.complexity.AcdtProblem.Processors.AcdtSimpleNontermProcessor
+declare AcdtUsableRules = aprove.verification.complexity.AcdtProblem.Processors.AcdtUsableRulesProcessor
+declare CpxTrsToAcdt = aprove.verification.complexity.AcdtProblem.Processors.CpxTrsToAcdtProcessor
+
+declare CdtForwardInstantiation = aprove.verification.complexity.CdtProblem.Processors.CdtForwardInstantiationProcessor
+declare CdtLeafRemoval = aprove.verification.complexity.CdtProblem.Processors.CdtLeafRemovalProcessor
+declare CdtRhsSimplification = aprove.verification.complexity.CdtProblem.Processors.CdtRhsSimplificationProcessor
+declare CdtGraphSplitRhs = aprove.verification.complexity.CdtProblem.Processors.CdtGraphSplitRhsProcessor
+declare CdtInstantiation = aprove.verification.complexity.CdtProblem.Processors.CdtInstantiationProcessor
+declare CdtKnowledge = aprove.verification.complexity.CdtProblem.Processors.CdtKnowledgeProcessor
+declare CdtMatrixRedPair = aprove.verification.complexity.CdtProblem.Processors.CdtMatrixRedPairProcessor
+declare CdtNarrowing = aprove.verification.complexity.CdtProblem.Processors.CdtNarrowingProcessor
+declare CdtRelMatchBoundsTAProcessor = aprove.verification.complexity.CdtProblem.Processors.CdtRelMatchBoundsTAProcessor
+declare CdtPolyRedPair = aprove.verification.complexity.CdtProblem.Processors.CdtPolyRedPairProcessor
+declare CdtToCpxRelTrs = aprove.verification.complexity.CdtProblem.Processors.CdtToCpxRelTrsProcessor
+declare CdtToCpxWeightedTrs = aprove.verification.complexity.CdtProblem.Processors.CdtToCpxWeightedTrsProcessor
+declare CdtViaRnts = aprove.verification.complexity.CdtProblem.Processors.CdtViaRntsProcessor
+declare CdtPrintGraph = aprove.verification.complexity.CdtProblem.Processors.CdtPrintGraphProcessor
+declare CdtRewriting = aprove.verification.complexity.CdtProblem.Processors.CdtRewritingProcessor
+declare CdtSccSplit = aprove.verification.complexity.CdtProblem.Processors.CdtSccSplitProcessor
+declare CdtUnreachable = aprove.verification.complexity.CdtProblem.Processors.CdtUnreachableProcessor
+declare CdtUsableRules = aprove.verification.complexity.CdtProblem.Processors.CdtUsableRulesProcessor
+declare CpxTrsToCdt = aprove.verification.complexity.CdtProblem.Processors.CpxTrsToCdtProcessor
+
+declare ComplexCdtTransformation = aprove.verification.complexity.CdtProblem.Processors.ComplexCdtProblemProcessor
+
+# Deprecated aliases
+declare CdtGraphRemoveDanglingNodes = aprove.verification.complexity.CdtProblem.Processors.CdtLeafRemovalProcessor
+declare CdtGraphRemoveTrailingTupleparts = aprove.verification.complexity.CdtProblem.Processors.CdtRhsSimplificationProcessor
+
+# CpxRelTrs problems
+declare CpxRelTrsToCDT = aprove.verification.complexity.CpxRelTrsProblem.Processors.CpxRelTrsToCDTProcessor
+declare CpxRelTrsToCpxTrs = aprove.verification.complexity.CpxRelTrsProblem.Processors.CpxRelTrsToCpxTrsProcessor
+
+# Other object definitions {{{1
+# Conditions {{{2
+declare MRR06 = aprove.verification.dpframework.Heuristics.Conditions.MRR06Condition
+declare CONSTNARR07 = aprove.verification.dpframework.Heuristics.Conditions.ConstNarr07Condition
+declare SINGLERULE = aprove.verification.dpframework.Heuristics.Conditions.SingleRuleCondition
+declare BRANCHING = aprove.verification.dpframework.Heuristics.Conditions.BranchingCondition
+declare CADE09 = aprove.verification.dpframework.Heuristics.Conditions.CADE09Condition
+declare CeTA = aprove.verification.dpframework.Heuristics.Conditions.CeTACondition
+declare QTRSCardinality = aprove.verification.dpframework.Heuristics.Conditions.QTRSHighCardinalityCondition
+declare SCNP10 = aprove.verification.dpframework.Heuristics.Conditions.SCNPCondition
+declare Uncurryable = aprove.verification.dpframework.Heuristics.Conditions.QDPUncurryingCondition
+    defaults [Method = HIRO_MIDDEL_ZANKL, Top = False]
+declare RtiContains = aprove.verification.dpframework.Heuristics.Conditions.RTIContains
+declare SIZE = aprove.verification.dpframework.Heuristics.Conditions.SizeFilter
+declare CONSTRUCTORREMOVAL = aprove.verification.dpframework.Heuristics.Conditions.ConstructorRemovalFilter
+declare ARRAYNUMBER = aprove.verification.dpframework.Heuristics.Conditions.JBCArrayNumberFilter
+
+
+# SAT and other solvers {{{2
+declare SAT4J = aprove.solver.Engines.SAT4JEngine
+declare RSAT = aprove.solver.Engines.RSATEngine
+declare PICOSAT = aprove.solver.Engines.PICOSATEngine
+declare MINISAT = aprove.solver.Engines.MINISATEngine
+    defaults [Version = 2, Simp = False]
+
+declare MINISATP = aprove.solver.Engines.MINISATPEngine
+declare MIRAXT = aprove.solver.Engines.MiraXTEngine
+declare MINIMAXSAT = aprove.solver.Engines.MiniMaxSATEngine
+declare HeuristicMINISAT = aprove.solver.Engines.HeuristicMINISATEngine
+declare INCREMENTAL = aprove.solver.Engines.MINISAT2IncrementalEngine
+declare FDSEARCH = aprove.solver.Engines.FDSEARCHEngine
+declare SICSTUS = aprove.solver.Engines.SICSTUSEngine
+declare CIME = aprove.solver.Engines.CIMEEngine
+declare RATSOLVER = aprove.solver.Engines.RatSolverEngine
+declare MULTISOLVER = aprove.solver.Engines.MultiSolverEngine
+declare YNMPEVL = aprove.solver.Engines.YNMPEVLEngine
+declare DYNAMIC = aprove.solver.Engines.DYNAMICNEGPOLOEngine
+declare PBSEARCH = aprove.solver.Engines.PBSEARCHEngine
+    defaults [Solver = PUEBLO]
+
+declare APROVEDIO = aprove.solver.Engines.APROVEEngine
+    defaults [InFIFO = "/tmp/aprove.in", OutFIFO = "/tmp/aprove.out"]
+
+declare YICESSAT = aprove.solver.Engines.YicesSATEngine
+declare CLASP = aprove.solver.Engines.ClaspEngine
+declare GLUCOSE = aprove.solver.Engines.GlucoseEngine
+declare MINISAT09Z = aprove.solver.Engines.MiniSAT09ZEngine
+declare PRECOSAT = aprove.solver.Engines.PrecosatEngine
+declare SAPPERLOT = aprove.solver.Engines.SapperlotEngine
+declare MANYSAT = aprove.solver.Engines.ManySATEngine
+declare MultiSAT = aprove.solver.Engines.MultiSATEngine
+declare ExternalSAT = aprove.solver.Engines.ExternalSATEngine
+declare SATRACE = aprove.solver.Engines.SATRaceEngine
+declare CRYPTOMINISAT = aprove.solver.Engines.CryptoMiniSATEngine
+    defaults [Verbosity = 0]
+declare YICES = aprove.solver.Engines.YicesEngine
+declare SMTLIB = aprove.solver.Engines.SMTLIBEngine
+    defaults [SmtSolver = "z3"]
+declare SMTINTERPOL = aprove.solver.Engines.SMTInterpolEngine
+
+declare DUMP = aprove.solver.Engines.SATDumpEngine
+    defaults [Engine=MINISAT, Path="/tmp/"]
+
+# SAT converters {{{2
+declare PLAIN = aprove.solver.DiophantineSATConverters.PLAINConverter
+    defaults [FormulaFactory = Sharing]
+
+declare CACHING = aprove.solver.DiophantineSATConverters.CACHINGConverter
+declare BOUNDED = aprove.solver.DiophantineSATConverters.BOUNDEDConverter
+declare FLAT = aprove.solver.DiophantineSATConverters.FLATConverter
+declare VALENCIA = aprove.solver.DiophantineSATConverters.VALENCIAConverter
+
+
+# Search heuristics {{{2
+declare FullSearch = aprove.verification.dpframework.Heuristics.ReductionPair.FullSearchHeuristic
+declare MaxFan = aprove.verification.dpframework.Heuristics.ReductionPair.MaxFanHeuristic
+declare MinFan = aprove.verification.dpframework.Heuristics.ReductionPair.MinFanHeuristic
+declare MaxPaths = aprove.verification.dpframework.Heuristics.ReductionPair.MaxPathsHeuristic
+declare MinPaths = aprove.verification.dpframework.Heuristics.ReductionPair.MinPathsHeuristic
+
+
+# Random stuff {{{2
+declare Map = java.util.LinkedHashMap
+
+
+# Orderings {{{2
+declare POLO = aprove.solver.POLOFactory
+    defaults [Degree = 1
+             ,Range = 1
+             ,Autostrict = False
+             ,AutostrictJar = False
+             ,LinearMonotone = False
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ,AppendForTimes = True
+                 ,Tracking = True
+                 ,ProductAbstraction = False
+                 ]
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ,MaxSimpleDegree = 4
+             ,Restriction = 2
+             ]
+
+declare LPO = aprove.solver.LPOFactory
+    defaults [Engine = SAT4J
+             ,Quasi = False
+             ,Breadth = False
+             ,Restriction = 2
+             ,Afstype = FULLAFS
+             ]
+
+declare LPOS = aprove.solver.LPOSFactory
+    defaults [Engine = SAT4J
+             ,Quasi = False
+             ,Breadth = False
+             ,Restriction = 2
+             ,Afstype = FULLAFS
+             ]
+
+declare RPO = aprove.solver.RPOFactory
+    defaults [Engine = SAT4J
+             ,Quasi = False
+             ,Breadth = False
+             ,Restriction = 2
+             ,Afstype = FULLAFS
+             ]
+
+declare RPOS = aprove.solver.RPOSFactory
+    defaults [Engine = SAT4J
+             ,Quasi = False
+             ,Breadth = False
+             ,Restriction = 2
+             ,Afstype = FULLAFS
+             ]
+
+declare PPO = aprove.solver.ParameterizablePOFactory
+    defaults [Engine = MINISAT
+             ,Quasi = False
+             ,Multiset = True
+             ,Lex = True
+             ,Permute = True
+             ,Prec = True
+             ,Xgengrc = True
+             ,Restriction = 2
+             ,Afstype = FULLAFS
+             ,Breadth = True
+             ]
+
+declare KBO = aprove.solver.KBOFactory
+    defaults [Quasi = False
+             ,Breadth = False
+             ,Restriction = 2
+             ,Afstype = FULLAFS
+             ]
+
+declare EMB = aprove.solver.EMBFactory
+    defaults [Engine = SAT4J
+             ,Quasi = False
+             ,Breadth = True
+             ,Restriction = 2
+             ,Afstype = FULLAFS
+             ]
+
+declare ACRPOS = aprove.solver.ACRPOSFactory
+    defaults [Quasi = False, Restriction = 2, Afstype = FULLAFS]
+
+declare PMatroNat = aprove.solver.PMatroNatFactory
+    defaults [Engine = MINISAT
+             ,Range = 1
+             ,Dimension = 2
+             ,MaxSumValue = -1
+             ,MaxProductValue = -1
+             ,Collapse = True
+             ]
+
+declare PMatroArcticInt = aprove.solver.PMatroArcticFactory
+    defaults [Engine = MINISAT
+             ,Min = 0
+             ,Max = 1
+             ,Dimension = 2
+             ,Collapse = True
+             ,Unary = True
+             ,AbsPos = False
+             ]
+
+declare KBOPOLO = aprove.solver.KBOPOLOFactory
+    defaults [Engine = YICES]
+
+declare LinearPOLO = aprove.solver.LinearPOLOFactory
+    defaults [Afstype = FULLAFS, NumBits = 1, Engine = YICES]
+
+
+# Labelings {{{2
+declare LabelAll = aprove.verification.dpframework.Heuristics.RootLabeling.LabelAllHeuristic
+declare LabelRootSymbols = aprove.verification.dpframework.Heuristics.RootLabeling.LabelRootSymbolsHeuristic
+declare LabelUnification = aprove.verification.dpframework.Heuristics.RootLabeling.LabelUnificationHeuristic
+
+
+# More orders {{{2
+declare MATRO = aprove.solver.MATROFactory
+    defaults [Engine = MINISAT
+                 [Version = 2
+                 ,AndMode = FLATTEN
+                 ,OrMode = LEFT_COMB
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,Range = 1
+             ,Type = COLLAPSINGDPTUPLE[Size = 2, Filter = NOFILTER]
+             ,Linearity = LINEAR
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ,AppendForTimes = True
+                 ,Tracking = True
+                 ,ProductAbstraction = False
+                 ]
+             ,Simplification = CONTEXT_FREE
+             ,SimplifyAll = True
+             ,StripExponents = True
+             ,DioLogic = False
+             ,NewSearchStrict = False
+             ,Rational = False
+             ,Denominator = 1
+             ]
+
+declare GPOLONAT = aprove.solver.GPOLONATFactory
+    defaults [Degree = 1
+             ,Range = 1
+             ,OPCSolver = NATTOFORMULA
+             ,MaxSimpleDegree = -1
+             ,StrictMode = AUTOSTRICTJAR
+             ]
+
+declare GPOLORAT = aprove.solver.GPOLORATFactory
+    defaults [Degree = 1
+             ,ExpMin = -1
+             ,ExpMax = 1
+             ,OPCSolver = RATTOFORMULA
+             ,MaxSimpleDegree = -1
+             ,StrictMode = ALLSTRICT
+             ,Heuristic = FULLRAT
+             ]
+
+declare GPOLORATSIMPLE = aprove.solver.GPOLORATSIMPLEFactory
+    defaults [Degree = 1
+             ,DenominatorRange = 4
+             ,NumeratorRange = 4
+             ,OPCSolver = MBYNTOFORMULA
+             ,MaxSimpleDegree = -1
+             ,StrictMode = SEARCHSTRICT
+             ,Heuristic = FULLRAT
+             ]
+
+declare NEGPOLO = aprove.solver.NEGPOLOFactory
+    defaults [Range = 1
+             ,PosConstantRange = 2
+             ,NegConstantRange = -1
+             ,Restriction = 2
+             ,NegRangeCriterion = DAMPEN
+             ,PartialDioEval = True
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ,AppendForTimes = True
+                 ,Tracking = True
+                 ,ProductAbstraction = False
+                 ]
+             ]
+
+declare NEGCONSTPOLO = aprove.solver.NEGCONSTPOLOFactory
+    defaults [Heuristic = PRHS
+             ,PosRange = 1
+             ,NegRange = -1
+             ,Simplification = MAXIMUM
+             ,StripExponents = True
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ,AppendForTimes = True
+                 ,Tracking = True
+                 ,ProductAbstraction = False
+                 ]
+             ]
+
+declare MMPOLO = aprove.solver.MMPOLOFactory
+    defaults [Heuristic = CAND1
+             ,Range = 1
+             ,Simplification = MAXIMUM
+             ,StripExponents = True
+             ,ConstAddendInOp = False
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ,AppendForTimes = True
+                 ,Tracking = True
+                 ,ProductAbstraction = False
+                 ]
+             ]
+
+declare PMatroTropicalInt = aprove.solver.PMatroTropicalFactory
+    defaults [Engine = MINISAT
+             ,Min = 0
+             ,Max = 1
+             ,Dimension = 2
+             ,Collapse = True
+             ,Unary = True
+             ]
+
+declare PMatroArcticSMT = aprove.solver.PMatroArcticSMTFactory
+    defaults [Dimension = 2, BelowZero = True]
+
+declare ArcticPOLO = aprove.solver.ArcticPOLOFactory
+    defaults [Engine = YICES]
+
+
+declare LIMITPOLO = aprove.solver.LimitPOLOFactory
+    defaults [Engine = MINISAT
+                 [Version = 2
+                 ,AndMode = FLATTEN
+                 ,OrMode = LEFT_COMB
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ,Range = 1
+             ,SatConverter = PLAIN
+                 [GTMode = DEEP
+                 ,SumType = MINIMAL
+                 ,PowersAsComb = False
+                 ,UseIFFsInGT = True
+                 ,NewTimes = True
+                 ,AppendForTimes = True
+                 ,Tracking = True
+                 ,ProductAbstraction = False
+                 ]
+             ,Simplification = CONTEXT_FREE
+             ,SimplifyAll = True
+             ,StripExponents = True
+             ]
+
+
+# Random stuff {{{2
+declare SCNP = aprove.solver.SCNPFactory
+declare DUO = aprove.solver.DUOFactory
+
+declare OLD = aprove.verification.theoremprover.TheoremProverProcedures.LemmaApplicationVisitors
+declare MAX = aprove.verification.theoremprover.TheoremProverProcedures.LemmaApplicationVisitors
+declare ALL = aprove.verification.theoremprover.TheoremProverProcedures.LemmaApplicationVisitors
+
+
+# Formula converters {{{2
+declare NATTOFORMULA = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.NATtoFormula
+    defaults [Solver = SAT]
+
+declare MBYNTOFORMULA = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.MbyNtoFormula
+    defaults [Solver = SAT, FixDenominator = False]
+
+declare Domain = aprove.verification.oldframework.Algebra.GeneralPolynomials.SMTSearch.Domain
+
+declare MBYNTOSMTLRA = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.MbyNtoSMTLRA
+    defaults [SmtEngine = YICES, FixDenominator = False]
+
+declare MBYNTOSMTNIA = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.MbyNtoSMTNIA
+    defaults [SmtEngine = SMTLIB, FixDenominator = False]
+
+declare RATTOFORMULA = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.RATtoFormula
+    defaults [SatBackend = MINISAT]
+
+declare ExternalRatSolver = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.ExternalRatSolver
+declare MBYNEXTERNAL = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.ExternalOPCSolver
+
+
+# More random stuff {{{2
+declare ICAPMU = aprove.verification.dpframework.CSDPProblem.ICapMu
+declare SIMPLECAPMU = aprove.verification.dpframework.CSDPProblem.SimpleCapMu
+declare NEGCOEFFPOLO = aprove.solver.CSNegCoeffPOLOFactory
+    defaults [StripExponents = True
+             ,Simplification = MAXIMUM
+             ,SatConverter = PLAIN
+             ,PosRange = 1
+             ,NegRange = -1
+             ,Heuristic = ALL_NEGATIVE
+             ,Engine = SAT4J
+                 [AndMode = FLATTEN
+                 ,OrMode = FLATTEN
+                 ,Sharing = True
+                 ,NodeLimit = -2
+                 ]
+             ]
+
+declare GPOLO = aprove.verification.dpframework.IDPProblem.Processors.nonInf.IDPGPoloSolver
+
+
+# Universal parameter definitions {{{2
+declare Sharing = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.NonCountingCircuitFactoryCreator
+declare LINEAR = aprove.verification.oldframework.Algebra.Matrices.Interpretation.LinearArgumentInterpretor
+declare Sparsesquare = aprove.verification.oldframework.Algebra.Matrices.Interpretation.SparseSquareArgumentInterpretor
+declare FULL = aprove.verification.oldframework.Algebra.Matrices.FullMatrixFactory
+    defaults [Size = 2, Filter = NOFILTER]
+
+declare COLLAPSINGDPFULL = aprove.verification.oldframework.Algebra.Matrices.CollapsingDPFullMatrixFactory
+    defaults [Size = 2, Filter = NOFILTER]
+
+declare COLLAPSINGDPTUPLE = aprove.verification.oldframework.Algebra.Matrices.CollapsingDPTupleVariablesMatrixFactory
+    defaults [Size = 2, Filter = NOFILTER]
+
+declare TUPLE = aprove.verification.oldframework.Algebra.Matrices.TupleVariablesMatrixFactory
+    defaults [Size = 2, Filter = NOFILTER]
+
+declare LOWERBOUNDCT = aprove.verification.oldframework.Algebra.Matrices.LowerBoundCollapsingDPTupleVariablesMatrixFactory
+declare SAT = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.SAT
+    defaults [SatConverter = PLAIN
+             ,SatBackend = SAT4J
+             ,Simplification = MAXIMUM
+             ,SimplifyAll = True
+             ,StripExponents = False
+             ]
+
+declare SMT = aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers.SMT
+    defaults [SmtBackend = YICES]
+
+declare NATOPCSATSOLVER = aprove.verification.oldframework.Algebra.GeneralPolynomials.SatSearch.NatOPCSatSolverFactory
+declare METRICPATHS = aprove.verification.dpframework.IDPProblem.idpGraph.MetricPathGenerator
+declare NONINFCONSTRAINTS = aprove.verification.dpframework.IDPProblem.Processors.nonInf.NonInfConstraintGenerator
+declare DEFAULT_SHAPE = aprove.verification.dpframework.IDPProblem.Processors.nonInf.poly.IdpDefaultShapeHeuristic
+declare CAND1_SHAPE = aprove.verification.dpframework.IDPProblem.Processors.nonInf.poly.IdpCand1ShapeHeuristic
+declare NOFILTER = aprove.verification.oldframework.Algebra.Matrices.Filters.FullMatrixFilter
+declare Uppertriangle = aprove.verification.oldframework.Algebra.Matrices.Filters.UpperTriangleFilter
+declare Assumesmaller = aprove.verification.oldframework.Algebra.Matrices.Filters.AssumeOneSmallerFilter
+declare Sparse = aprove.verification.oldframework.Algebra.Matrices.Filters.SparseFilter
+
+
+# Theorem prover runners {{{2
+declare APROVE = aprove.verification.dpframework.DPProblem.TheoremProver.TheoremProverRunners.AproveRunner
+declare ACL2 = aprove.verification.dpframework.DPProblem.TheoremProver.TheoremProverRunners.ACL2Runner
+declare APROVEACL2 = aprove.verification.dpframework.DPProblem.TheoremProver.TheoremProverRunners.AproveACL2Runner
+
+# Runtime Complexity for ITRSs
+declare CpxITrsToCdt = aprove.verification.complexity.CpxITrsProblem.Processors.CpxITrsToCdtProcessor
+
+declare CpxITrsToCIdt = aprove.verification.complexity.CpxITrsProblem.Processors.CpxITrsToCIdtProcessor
+
+#CIdt Processors
+declare CIdtUsableRules = aprove.verification.complexity.CIdtProblem.Processors.CIdtUsableRulesProcessor
+declare CIdtTypeInference = aprove.verification.idpframework.Processors.Filters.TypeInference
+declare CIdtPolyInterpretationSwitch = aprove.verification.idpframework.Processors.IDPPolyIntInterpretationSwitch
+declare CIdtCNDGraph = aprove.verification.complexity.CIdtProblem.Processors.CIdtCNDGraphProcessor
+declare CIdtPathCollapse = aprove.verification.complexity.CIdtProblem.Processors.CIdtPathCollapseProcessor
+declare CIdtPolyIntRedPair = aprove.verification.complexity.CIdtProblem.Processors.CIdtPolyIntRedPairProcessor
+declare CIdtLeafRemoval = aprove.verification.complexity.CIdtProblem.Processors.CIdtLeafRemovalProcessor
+declare CIdtKnowledgePropagation = aprove.verification.complexity.CIdtProblem.Processors.CIdtKnowledgePropagationProcessor
+declare CIdtNodeSplit = aprove.verification.complexity.CIdtProblem.Processors.CIdtNodeSplitProcessor
+
+
+#CINT Processors
+declare CpxIntTrsRedPair = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsRedPairProcessor
+declare CpxIntTrsKnowledge = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsKnowledgeProcessor
+declare CpxIntTrsLeafRemoval = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsLeafRemovalProcessor
+declare CpxIntTrsRemoveUnreachable = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsRemoveUnreachableProcessor
+declare CpxIntTrsRhsSimplification = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsRhsSimplificationProcessor
+declare CpxIntTrsChainingProcessor = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsChainingProcessor
+declare CpxIntTrsUnsatisfiableConstraintProcessor = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsUnsatisfiableConstraintProcessor
+declare CpxIntTrsToCpxRelTrs = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsToCpxRelTrsProcessor
+declare CpxIntTrsToPUBSExport = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsToPUBSExportProcessor
+declare CpxIntTrsToFSTExport = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsToFSTExportProcessor
+declare CpxIntTrsFSTExport = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsFSTExport
+declare CpxIntTrsToKoAT = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsToKoATProcessor
+declare CpxIntTrsToKoAT2 = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsToKoAT2Processor
+declare CpxIntTrsToTCT = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsToTCTProcessor
+declare CpxIntTrsToLoAT = aprove.verification.complexity.CpxIntTrsProblem.Processors.CpxIntTrsToLoATProcessor
+
+
+#TRS to RNTS conversion processors
+declare CpxTrsToWeightedTrs = aprove.verification.complexity.CpxTrsProblem.Processors.CpxTrsToWeightedTrsProcessor
+declare CpxRelTrsToWeightedTrs = aprove.verification.complexity.CpxRelTrsProblem.Processors.CpxRelTrsToWeightedTrsProcessor
+declare CpxWeightedTrsRenaming = aprove.verification.complexity.CpxWeightedTrsProblem.Processors.CpxWeightedTrsRenamingProcessor
+declare CpxWeightedTrsInnermostUnusableRules = aprove.verification.complexity.CpxWeightedTrsProblem.Processors.CpxWeightedTrsInnermostUnusableRulesProcessor
+declare CpxWeightedTrsTypeInference = aprove.verification.complexity.CpxTypedWeightedTrsProblem.Processors.CpxWeightedTrsTypeInferenceProcessor
+declare CpxTypedWeightedTrsCompletion = aprove.verification.complexity.CpxTypedWeightedTrsProblem.Processors.CpxTypedWeightedTrsCompletionProcessor
+declare CpxTypedWeightedCompleteTrsNarrowing = aprove.verification.complexity.CpxTypedWeightedCompleteTrsProblem.Processors.CpxTypedWeightedCompleteTrsNarrowingProcessor
+declare CpxTypedWeightedCompleteTrsToRnts = aprove.verification.complexity.CpxTypedWeightedCompleteTrsProblem.Processors.CpxTypedWeightedCompleteTrsToRntsProcessor
+
+
+#RNTS Processors
+declare CpxRntsAnalysisOrder = aprove.verification.complexity.CpxRntsProblem.Processors.CpxRntsAnalysisOrderProcessor
+declare CpxRntsResultPropagation = aprove.verification.complexity.CpxRntsProblem.Processors.CpxRntsResultPropagationProcessor
+declare CpxRntsInlining = aprove.verification.complexity.CpxRntsProblem.Processors.CpxRntsInliningProcessor
+declare CpxRntsSimplification = aprove.verification.complexity.CpxRntsProblem.Processors.CpxRntsSimplificationProcessor
+declare CpxRntsSize = aprove.verification.complexity.CpxRntsProblem.Processors.CpxRntsSizeProcessor
+declare CpxRntsRuntime = aprove.verification.complexity.CpxRntsProblem.Processors.CpxRntsRuntimeProcessor
+declare CpxRntsRetry = aprove.verification.complexity.CpxRntsProblem.Processors.CpxRntsRetryProcessor
+declare CpxRntsCompleteCofloco = aprove.verification.complexity.CpxRntsProblem.Processors.CpxRntsCompleteToCoflocoProcessor
+
+
+#PTRS Processors (General)
+declare PTRS_toQTRS = aprove.verification.probabilistic.Termination.PTRSProblem.Processors.PTRS_ToQTRSProcessor
+declare PTRS_toPQTRS = aprove.verification.probabilistic.Termination.PTRSProblem.Processors.PTRS_ToPQTRSProcessor
+declare PTRS_ToInnermost = aprove.verification.probabilistic.Termination.PTRSProblem.Processors.PTRS_ToInnermostProcessor
+
+
+#PTRS Processors (AST)
+declare PTRS_AST_toSAST = aprove.verification.probabilistic.Termination.PTRSProblem.AST.Processors.PTRS_AST_ToSASTProcessor
+declare PTRS_AST_DirectPOLO = aprove.verification.probabilistic.Termination.PTRSProblem.AST.Processors.PTRS_AST_DirectPoloProcessor
+declare PTRS_AST_ExpectedDirectPOLO = aprove.verification.probabilistic.Termination.PTRSProblem.AST.Processors.PTRS_AST_ExpectedDirectPoloProcessor
+declare PTRS_AST_DirectMATRO = aprove.verification.probabilistic.Termination.PTRSProblem.AST.Processors.PTRS_AST_DirectMatroProcessor
+declare PTRS_AST_LoopFinder = aprove.verification.probabilistic.Termination.PTRSProblem.AST.Processors.PTRS_AST_LoopFinderProcessor
+declare PTRS_AST_LoopWalkFinder = aprove.verification.probabilistic.Termination.PTRSProblem.AST.Processors.PTRS_AST_LoopWalkFinderProcessor
+
+declare PQTRS_AST_toADP = aprove.verification.probabilistic.Termination.PTRSProblem.AST.Processors.PQTRS_AST_ToADPProblemProcessor
+
+
+# PTRS Processors (SAST)
+declare PTRS_SAST_DirectPOLO = aprove.verification.probabilistic.Termination.PTRSProblem.SAST.Processors.PTRS_SAST_DirectPoloProcessor
+declare PTRS_SAST_LoopFinder = aprove.verification.probabilistic.Termination.PTRSProblem.SAST.Processors.PTRS_SAST_LoopFinderProcessor
+
+declare PQTRS_SAST_toADP = aprove.verification.probabilistic.Termination.PTRSProblem.SAST.Processors.PQTRS_SAST_ToADPProblemProcessor
+
+
+#AST ADP Processors
+declare ADP_AST_ReductionPairProcessor = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_ReductionPairProcessor
+declare ADP_AST_DependencyGraphProcessor = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_DependencyGraphProcessor
+declare ADP_AST_UsableRulesProcessor = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_UsableRulesProcessor
+declare ADP_AST_UsableTermsProcessor = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_UsableTermsProcessor
+declare ADP_AST_ProbabilityRemovalProcessor = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_ProbabilityRemovalProcessor
+declare ADP_AST_SubtermCriterion = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_SubtermCriterion
+
+declare ADP_AST_InstProcessor = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_InstProcessor
+declare ADP_AST_ForwardInstProcessor = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_ForwardInstProcessor
+declare ADP_AST_RewritingProcessor = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_RewritingProcessor
+declare ADP_AST_RuleOverlapInstProcessor = aprove.verification.probabilistic.Termination.ADPProblem.AST.Processors.ADP_AST_RuleOverlapInstProcessor
+
+
+#SAST ADP Processors
+declare ADP_SAST_ReductionPairProcessor = aprove.verification.probabilistic.Termination.ADPProblem.SAST.Processors.ADP_SAST_ReductionPairProcessor
+declare ADP_SAST_KnowledgePropagationProcessor = aprove.verification.probabilistic.Termination.ADPProblem.SAST.Processors.ADP_SAST_KnowledgePropagationProcessor
+declare ADP_SAST_LeafRemovalProcessor = aprove.verification.probabilistic.Termination.ADPProblem.SAST.Processors.ADP_SAST_LeafRemovalProcessor
+declare ADP_SAST_UsableRulesProcessor = aprove.verification.probabilistic.Termination.ADPProblem.SAST.Processors.ADP_SAST_UsableRulesProcessor
+declare ADP_SAST_UsableTermsProcessor = aprove.verification.probabilistic.Termination.ADPProblem.SAST.Processors.ADP_SAST_UsableTermsProcessor
+declare ADP_SAST_ProbabilityRemovalProcessor = aprove.verification.probabilistic.Termination.ADPProblem.SAST.Processors.ADP_SAST_ProbabilityRemovalProcessor
+
+
+#Complexity PTRS Processors
+declare PTRS_Cpx_DirectPOLO = aprove.verification.probabilistic.Complexity.PTRSProblem.Processors.PTRS_Cpx_DirectPoloProcessor
+declare PTRS_Cpx_ToPQTRS = aprove.verification.probabilistic.Complexity.PTRSProblem.Processors.PTRS_Cpx_ToPQTRSProcessor
+declare PTRS_Cpx_ToInnermost = aprove.verification.probabilistic.Complexity.PTRSProblem.Processors.PTRS_Cpx_ToInnermostProcessor
+declare PTRS_Cpx_DerivationalToRuntimeProcessor = aprove.verification.probabilistic.Complexity.PTRSProblem.Processors.PTRS_Cpx_DerivationalToRuntimeProcessor
+
+declare PQTRS_Cpx_ToADP = aprove.verification.probabilistic.Complexity.PTRSProblem.Processors.PQTRS_Cpx_ToADPProcessor
+
+
+#Complexity ADP Processors
+declare ADP_Cpx_ReductionPairProcessor = aprove.verification.probabilistic.Complexity.ADPProblem.Processors.ADP_Cpx_ReductionPairProcessor
+declare ADP_Cpx_KnowledgePropagationProcessor = aprove.verification.probabilistic.Complexity.ADPProblem.Processors.ADP_Cpx_KnowledgePropagationProcessor
+declare ADP_Cpx_LeafRemovalProcessor = aprove.verification.probabilistic.Complexity.ADPProblem.Processors.ADP_Cpx_LeafRemovalProcessor
+declare ADP_Cpx_UsableRulesProcessor = aprove.verification.probabilistic.Complexity.ADPProblem.Processors.ADP_Cpx_UsableRulesProcessor
+declare ADP_Cpx_UsableTermsProcessor = aprove.verification.probabilistic.Complexity.ADPProblem.Processors.ADP_Cpx_UsableTermsProcessor
+declare ADP_Cpx_ProbabilityRemovalProcessor = aprove.verification.probabilistic.Complexity.ADPProblem.Processors.ADP_Cpx_ProbabilityRemovalProcessor
+declare ADP_Cpx_RuleOverlapInstProcessor = aprove.verification.probabilistic.Complexity.ADPProblem.Processors.ADP_Cpx_RuleOverlapInstProcessor
+declare ADP_Cpx_DependencyGraphSplitProcessor = aprove.verification.probabilistic.Complexity.ADPProblem.Processors.ADP_Cpx_DependencyGraphSplitProcessor
+
+

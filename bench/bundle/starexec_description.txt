@@ -1,0 +1,21 @@
+AProVE analyzes termination and complexity for Java, C, Haskell,
+Prolog, integer transition systems [ITSs], and term rewrite systems [TRSs],
+possibly with integers [intTRSs]. To analyze programs, AProVE converts
+them to ITSs or intTRSs.
+
+AProVE uses the SAT/SMT solvers Z3 [github.com/Z3Prover/z3], minisat
+[minisat.se], and Yices 1 [yices.csl.sri.com].
+
+To convert ITSs to AProVE`s input format, we use
+SMTPushdown [github.com/mmjb/SMTPushdown].
+
+C programs are compiled to LLVM [clang.llvm.org] and then transformed to ITSs.
+For termination analysis, these ITSs are analyzed by AProVE and T2 [github.com/mmjb/T2].
+For complexity analysis of C Integer programs, the ITSs are obtained by llvm2kittel.
+
+One of AProVE`s techniques for complexity analysis of TRSs results in
+recursive ITSs, which are analyzed by AProVE and CoFloCo
+[github.com/aeflores/CoFloCo].
+
+To analyze the complexity of ITSs, AProVE uses our own tools LoAT, KoAT, and KoAT2.
+KoAT2 uses control flow refinement by iRankFinder [irankfinder.loopkiller.com].

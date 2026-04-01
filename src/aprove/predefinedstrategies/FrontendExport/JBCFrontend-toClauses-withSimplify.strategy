@@ -1,0 +1,27 @@
+# ========================================================== #
+# ==================== CURRENT STRATEGY ==================== #
+# ====================  FOR COMMON USE  ==================== #
+# ========================================================== #
+
+main = RunDefaultStrategyForObligation
+
+# =============================================== #
+# ===================== JBC ===================== #
+# =============================================== #
+
+jbc = jbcAbstract
+
+jbcAbstract = JBCToTerminationGraph[FilterUnnecessaryWrites=False, TryNontermProofs=False, TryLoopingNontermProofs=False, TryNonLoopingNontermProofs=False, HandleOverflows=False, UseOnlyAbstractInstances=False];jbcGraph
+
+jbcGraph = TerminationGraphToSCC[SingleResultSystem=True, ApplyAnalyses = "aprove.verification.oldframework.Bytecode.Processors.ToSCC.UsedFieldsAnalysis"];jbcGraphSCC
+
+jbcGraphSCC = jbcGraphSCCIRS
+jbcGraphSCCIRS = 
+    TerminationSCCToIRS[
+        EncodeOnlyInterestingRefs=True,
+        CompressRules=True,
+        FilterUnneededArguments=True,
+        FilterDuplicateArguments=True,
+        TryQDPExport=False,
+        ApplyPathLength=True
+    ];IRSToIntClausesProcessor:TRSDumpProcessor

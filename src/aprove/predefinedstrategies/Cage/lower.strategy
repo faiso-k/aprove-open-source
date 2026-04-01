@@ -1,0 +1,74 @@
+# entry point
+main = If[Condition = JBCComplexity](jbcComplexity, jbcTerm)
+
+# termination is not supported by this strategy
+jbcTerm = Fail
+
+# our strategy for complexity analysis
+jbcComplexity =
+  # as soon as one of the two substrategies succeeds, AProVE prints the result and terminates
+  Any(
+    Solve(jbcEval),
+    Solve(jbcComplexity)
+  )
+
+# symbolic evaluation without abstraction
+# if it terminates, then we have proven constant complexity
+jbcEval =
+  Timer(1000,
+    JBCToTerminationGraph[
+      TryNontermProofs=False,
+      LoopMaximalIterations=2147483647,
+      LoopMergeCostBase=0,
+      LoopMergeCostChange=0,
+      IncomingInstanceFinder=False,
+      TryMerging=False,
+      TrySeparateMethodAnalysis=False,
+      TryParallelPathMerging=False,
+      Multithreaded=False
+    ]
+  ) : TerminationGraphToSCC
+
+# our sophisticated complexity analysis technique...
+jbcComplexity =
+  # start with the symbolic execution...
+  JBCToTerminationGraph[
+    # non-termination is currently disabled, as it doesn't work with method summaries
+    TryNontermProofs=False,
+    # recursion is disabled, as it's not support for complexity analysis
+    TrySeparateMethodAnalysis=False
+  ]
+  # ...then translate the SE-graph to an ITS
+  ; jbcITSCage
+
+jbcITSCage =
+  # first identify the edges of the graph that have to be translated
+  # the decision depends on the analysis goal (space- vs time-complexity)
+  If [Condition = JBCTimeComplexity](
+    TerminationGraphToComplexityRuleSet[ApplyAnalyses = "aprove.verification.oldframework.Bytecode.Processors.ToSCC.UsedFieldsAnalysis", Goal=TIME],
+    TerminationGraphToComplexityRuleSet[ApplyAnalyses = "aprove.verification.oldframework.Bytecode.Processors.ToSCC.UsedFieldsAnalysis", Goal=SPACE]
+  )
+  # then translate them to an ITS
+  ; JBCGraphEdgesToIntTrs
+  # simplify it
+  ; jbcIntTrsSimplify
+  # dump the resulting ITS to tmp
+  ; TRSDumpProcessor[OutputDir="/tmp/"]
+  # and try to prove bounds using LoAT / KoAT
+  ; weightedIntTrs
+
+jbcIntTrsSimplify =
+  # chain rules corresponding to straight-line code
+    Maybe(WeightedIntTrsStraightLineCodeCompression)
+  # move arithmetic from left-hand sides to the guards of the rules
+  # as arithmetic on the left-hand side of a rule is not allowed
+  ; Maybe(WeightedIntTrsMoveArithmeticFromLhssToConstraints)
+  # linearize the left-hand sides
+  # as the arguments on the left-hand sides have to be distinct variables
+  ; Maybe(WeightedIntTrsLinearizeLhss)
+  # get rid of operations not supported on ITS-level using (more or less) clever encodings
+  ; Maybe(WeightedIntTrsRemoveUnsupportedOperators)
+  # move arithmetic from guards to right-hand sides to make the ITS slightly more readable
+  ; Maybe(WeightedIntTrsMoveArithmeticFromConstraintsToRhss)
+
+weightedIntTrs = WeightedIntTrsToLoAT[Timeout=60]

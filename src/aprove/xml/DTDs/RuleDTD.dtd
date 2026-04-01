@@ -1,0 +1,7 @@
+<!ENTITY % term SYSTEM "TermDTD.dtd">
+
+%term;
+
+<!ELEMENT Rule (Condition, Term, Term)>
+
+<!ELEMENT Condition (Rule*)>

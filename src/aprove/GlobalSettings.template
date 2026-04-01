@@ -1,0 +1,79 @@
+package aprove;
+
+import static aprove.Globals.*;
+
+/**
+ * This file contains local settings.
+ * It should never be checked into version control.
+ *
+ * This class is not intended to be instantiated.
+ * All properties should be static and final, so that an optimizing compiler
+ * can replace and evaluate references at compile time.
+ *
+ * @author cotto
+ */
+public final class GlobalSettings {
+    private GlobalSettings() {}
+
+    static final AproveVersion aproveVersion = AproveVersion.DEVELOPER_VERSION;
+
+    static final boolean splitDPGraphProcessor = false;
+    static final boolean useExternalSpawner = false;
+    static final boolean rainbow = false;
+    static final boolean a3pat = false;
+    static final boolean ceta = false;
+    static final boolean cpf = false;
+
+    // Create labels for propositional formulae? (For use in SATView or even plain debugging). 
+    // Labels will be quietly ignored if false - saves memory for release version.
+    // As the final formulae will have a slightly different structure, do a regression test!
+    static final boolean createSatViewLabels = false;
+    // And directly related - will formulae be serializeable (imperative for both dump- and inject-mode SATView)?
+    // (Comment out Serializable if you want to use SATView)
+    public static interface SATViewSerialize //extends Serializable
+    {}
+
+    static final long DEBUG_MODE = NONE;
+
+    static final boolean PROFILING = false;
+
+    /*
+     * This toggles the collection of training data for machine learning mechanisms. Currently SVM only. 
+     */
+    static final boolean TRAINING = false;
+
+    /*
+     * If set, produce nodes in the proof tree for every processor.
+     *
+     * I.e. even processors, which did not deliver a result (because they failed
+     * or were aborted) show up in the proof tree. May be useful for strategy
+     * analysis.
+     */
+    static final boolean FULL_PROOF_TREE = false;
+
+    /**
+     * This toggles if the needed time is exported in the proof.
+     */
+    public static final boolean TIMINGS_IN_PROOF_TREE = true;
+
+    /**
+     * If this is set, the benchmark framework will log all uncaught exceptions
+     * to the database (which must be able to store them, see a recent database
+     * template).
+     */
+    static final boolean logExceptionsInBenchmarkMode = false;
+
+    /*
+     * TODO To avoid the following global flag one would have to modify the QCSDPProblem and
+     * QCSDependencyGraph. The graph must not be approximated in the problem, but only
+     * when applying the QCSDependencyGraph processor. This change would allow to
+     * parameterize the dependency graph processor. This also implies that one would
+     * have to recheck every edge when applying the QCSDependencyGraph, since one would
+     * not know whether the edge was checked with the same estimations before.
+     *
+     * Note that the same problem also exists for the QDependencyGraph and possibly for
+     * other processors, too.
+     */
+    /** For QCSDPs. Use simple Ren^mu(Cap^mu(...)) instead of ICap^mu */
+    static final boolean simpleCapMu = false;
+}

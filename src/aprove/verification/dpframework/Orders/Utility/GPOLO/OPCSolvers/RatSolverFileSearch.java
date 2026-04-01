@@ -1,0 +1,106 @@
+package aprove.verification.dpframework.Orders.Utility.GPOLO.OPCSolvers;
+
+import java.io.*;
+import java.math.*;
+import java.util.*;
+import java.util.logging.*;
+import java.util.regex.*;
+
+import aprove.strategies.Abortions.*;
+import aprove.verification.oldframework.Algebra.Orders.Utility.POLO.*;
+import aprove.verification.oldframework.Algebra.Polynomials.*;
+import aprove.verification.oldframework.ExternalProcess.*;
+import aprove.verification.oldframework.Utility.GenericStructures.*;
+
+/**
+ * POLO-Solving a la Valencia
+ * Modified to allow negative results (-4 => 1/4).
+ *
+ * @author Carsten Otto
+ * @version $Id$
+ */
+public class RatSolverFileSearch extends AbstractSearchAlgorithm implements StdoutChecker<Map<String, BigInteger>> {
+    private final static String PROG = "ratSolver";
+    private final static String RATIONALS = "AllRationals";
+
+    private final static Pattern solutionMatcher = Pattern.compile("^\\+ ([^=]+)=(-?[0-9]+)$");
+
+    private final static Logger log = Logger.getLogger("aprove.verification.oldframework.Algebra.Orders.Utility.POLO.RatSolverFileSearch");
+
+    private RatSolverFileSearch(DefaultValueMap<String, BigInteger> ranges) {
+        super(ranges);
+    }
+
+    public static SearchAlgorithm create(DefaultValueMap<String, BigInteger> ranges) {
+        return new RatSolverFileSearch(ranges);
+    }
+
+    @Override
+    public String getTempPrefix() {
+        return "ratsolve";
+    }
+
+    @Override
+    public String getInputTempSuffix() {
+        return "valencia";
+    }
+
+    @Override
+    public Map<String, BigInteger> search(Set<SimplePolyConstraint> constraints,
+            Set<SimplePolyConstraint> searchStrictConstraints, SimplePolynomial maximizeMe, Abortion abortion)
+            throws AbortionException {
+        if (! searchStrictConstraints.isEmpty()) {
+            throw new RuntimeException("RatSolverFileSearch does not support searchstrict mode!");
+        }
+
+        // make sure that the variable-dependent ranges are respected
+        Set<SimplePolyConstraint> constraintsCopy = new LinkedHashSet<SimplePolyConstraint>(constraints);
+        String problem = this.constraintsToString(constraintsCopy, abortion);
+        return FileCheckerHelper.checkWithStdout(problem, abortion, this,
+                RatSolverFileSearch.PROG, RatSolverFileSearch.RATIONALS, this.ranges.getDefaultValue().toString());
+    }
+
+    private String constraintsToString(Set<SimplePolyConstraint> constraints, Abortion abortion) throws AbortionException {
+        StringBuilder buffer = new StringBuilder();
+        boolean inString = false;
+        for(SimplePolyConstraint constraint: constraints) {
+            if (inString) {
+                buffer.append(";\n");
+            }
+            else {
+                inString = true;
+            }
+            buffer.append(constraint.toStringRep(PolyFormatter.RATSOLVER));
+        }
+        return buffer.toString();
+    }
+
+    @Override
+    public Map<String, BigInteger> readResult(BufferedReader result) throws IOException {
+        String line;
+        line = result.readLine();
+        if (RatSolverFileSearch.log.isLoggable(Level.FINEST)) {
+            RatSolverFileSearch.log.finest("result from ratSolver: " + line + "\n");
+        }
+        if (! "+SOLUTION: ".equals(line)) {
+            return null;
+        }
+
+        Map<String, BigInteger> solution = new LinkedHashMap<String, BigInteger>();
+        while( (line=result.readLine()) != null) {
+            if (RatSolverFileSearch.log.isLoggable(Level.FINEST)) {
+                RatSolverFileSearch.log.finest("rs sez: " + line + "\n");
+            }
+            if (line.equals("-")) {
+                break; // End of output
+            }
+            Matcher match = RatSolverFileSearch.solutionMatcher.matcher(line);
+            if (! match.matches()) {
+                RatSolverFileSearch.log.warning("Unexpected line from ratSolver: " + line + "\n");
+                continue;
+            }
+            solution.put(match.group(1), BigInteger.valueOf(Long.parseLong(match.group(2))));
+        }
+        return solution;
+    }
+}

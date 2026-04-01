@@ -1,0 +1,60 @@
+//
+//   Title:        TTT grammar
+//   Description:  grammar definition for TTT programs
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2003
+//   Authors:      Peter Schneider-Kamp, Achim Luecking, Stephan Falke
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.ttt;
+
+Helpers
+ digit = ['0' .. '9'];
+ letter = [['a' .. 'z'] + ['A' .. 'Z']];
+ specials = '+' | '-' | '*' | ':' | '.' | '/' | '\' | '=' | '|' | '@' | '<' | '>';
+
+Tokens // 
+ open = '(';
+ close = ')';
+ comma = ',';
+ pipe = '^';
+ semi_colon = ';';
+ arrow = ('->' | '==');
+ id = (letter | digit | '_' | 39 | 35)+;
+ infixid = specials+;
+ blanks = (' ' | 9 | 10 | 13 )+;
+ line_comments = '`' [[0..0xffff]-[10+13]]*(10|13|10 13)?;
+ full_comments = '~' [[0..0xffff]-'~']*'~';
+ more_full_comments = 'COMMENT' [0..0xffff]*;
+
+Ignored Tokens
+ blanks, line_comments, full_comments, more_full_comments;
+
+Productions
+ program = rule rules semi_colon?;
+ rules = furtherrule*;
+ furtherrule = semi_colon rule;
+ idlist = idcomma* id;
+ idcomma = id comma;
+ rule =
+  {simple} simple |
+  {conditional} conditional ;
+ simple = [left]:term arrow [right]:term;
+ conditional = rulelist pipe simple;
+ rulelist = simplecomma* simple;
+ simplecomma = simple comma;
+ simpleinfix = open infixterm close; 
+ term = {infix} infixterm | 
+  {prefix} prefixterm;
+ prefixterm = 
+  {const_var} id |
+  {funct_app} id open termlist? close;
+ infixterm = {prepre} [l]:prefixterm infixid [r]:prefixterm | 
+  {inpre} simpleinfix infixid prefixterm |
+  {prein} prefixterm infixid simpleinfix |
+  {inin} [l]:simpleinfix infixid [r]:simpleinfix;
+ termlist = termcomma* term;
+ termcomma = term comma;

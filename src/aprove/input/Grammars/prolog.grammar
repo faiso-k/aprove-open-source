@@ -1,0 +1,202 @@
+//
+//   Title:        Prolog grammar
+//   Description:  grammar definition for prolog programs
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2006
+//   Author:       Thomas Stroeder
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id: prolog.grammar,v 1.38 2006/02/10 09:32:24 nowonder Exp $
+//
+Package aprove.input.Generated.prolog;
+
+Helpers
+ lf = 10 | 13;
+ base_prefix = '0' 'b' |
+               '0' 'o' |
+               '0' 'x' |
+               '0' ''' |
+               '2' ''' |
+               '3' ''' |
+               '4' ''' |
+               '5' ''' |
+               '6' ''' |
+               '7' ''' |
+               '8' ''' |
+               '9' ''' |
+               '1' '0' ''' |
+               '1' '1' ''' |
+               '1' '2' ''' |
+               '1' '3' ''' |
+               '1' '4' ''' |
+               '1' '5' ''' |
+               '1' '6' ''' |
+               '1' '7' ''' |
+               '1' '8' ''' |
+               '1' '9' ''' |
+               '2' '0' ''' |
+               '2' '1' ''' |
+               '2' '2' ''' |
+               '2' '3' ''' |
+               '2' '4' ''' |
+               '2' '5' ''' |
+               '2' '6' ''' |
+               '2' '7' ''' |
+               '2' '8' ''' |
+               '2' '9' ''' |
+               '3' '0' ''' |
+               '3' '1' ''' |
+               '3' '2' ''';
+ digit = ['0' .. '9'];
+ small_letter = [97..122] |
+                [128..246] |
+                [248..255];
+ cap_letter = [65..90] |
+              [192..214] |
+              [216..222];
+ s0 = '+' | '-' | '^' | '<' | '>' | '=' | '~' | ':' | '?' | '@' | '#' | '$' | '&' | '`';
+ s1 = s0 | '*' | '/' | '\';        // without '.'
+ s2 = s0 | '*' | '.' | '\';        // without '/'
+ s3 = s0 | '.' | '/' | '\';        // without '*'
+ s4 = s0 | '*' | '/';             // without '*' and '.'
+ s5 = s0 | '*' | '.' | '/';        // without '\'
+ s6 = s0 | '.' | '\';             // without '*' and '/'
+ symbol_char = s0 | '*' | '.' | '/' | '\';
+ s_char = '/' |
+          s2 symbol_char* |
+          '/' s3 symbol_char*; // not beginning with '/' '*'
+ solo_char = 33 | 59;
+ quote_char = 34 | 39 | 96;
+ underline = '_';
+ p_char = 37 |
+          40 |
+          41 |
+          44 |
+          91 |
+          93 |
+          [123..125];
+ lchar = [[0..9] + [[14..32] + [127..160]]] | 11 | 12; // layout_char without lf
+ layout_char = lchar | lf;
+ symbol = s_char*;             // except beginning /*
+ simple_float = digit digit* '.' digit digit*;
+ exp = 'e' | 'E';
+ shelp = '-' | '+';
+ exponent = digit digit* | shelp digit digit*;
+ alpha = cap_letter |
+         small_letter |
+         digit |
+         underline;
+ word = small_letter alpha*;
+ base_char = alpha |
+             solo_char |
+             p_char;
+ printing_char = base_char |
+                 symbol_char |
+                 quote_char;
+ pr_char = '*'* base_char |
+           '*'* quote_char |
+           base_char '/'* |
+           quote_char '/'* |
+           '*'* s6 |
+           s6 '/'* |
+           '*'* layout_char |
+           layout_char '/'*;
+ qchar = base_char | s5;
+ quoted_char = ' ' | printing_char;
+ qstring = qchar | ''' | '`';
+ qquote = qchar | '"' | '`';
+ qback = qchar | '"' | ''';
+ other_escape_sequence = 'x' alpha alpha* '\' |
+                         'o' digit digit* '\' |
+                         lf |
+                         '\' |
+                         ''' |
+                         '"' |
+                         '`' |
+                         '^';
+ escape_sequence = 'b' |
+                   't' |
+                   'n' |
+                   'v' |
+                   'f' |
+                   'r' |
+                   'e' |
+                   'd' |
+                   'a' |
+                   other_escape_sequence;
+ string_item = qstring |              // other than " or \
+               '"' '"' |
+               ' ' |
+               '\' escape_sequence;
+ quoted_item = ' ' |
+               qquote |             // other than ' or \
+               ''' ''' |
+               '\' escape_sequence;
+ quoted_atom = ''' quoted_item* ''';
+ char_item = quoted_item;
+ backquoted_item = ' ' |
+                   qback |          // other than ` or \
+                   '`' '`' |
+                   '\' escape_sequence;
+ backquoted_atom = '`' backquoted_item* '`';
+ quoted_name = quoted_atom |
+               backquoted_atom;
+ char = layout_char | pr_char;
+ no_lf_char = lchar | quoted_char | '%';
+ comment = '/' '*' '/'* char* '*'* '*' '/' |    // char must not contain '*/'
+           '%' no_lf_char* lf;              // char must not contain lf
+ layout_text_item = layout_char | comment;
+ l_text = layout_text_item layout_text_item*;
+
+Tokens
+ fullstop = '.' l_text;
+ empty_list = '[' l_text? ']';
+ bracket_l = '[';
+ bracket_r = ']';
+ infinity = 'i' 'n' 'f';
+ no_number = 'n' 'a' 'n';
+ comma = ',';
+ cut_sym = '!';
+ curly_l = '{';
+ curly_r = '}';
+ punctuation_char = p_char;
+ name = quoted_name |
+        word |
+        symbol |
+        solo_char |
+        '{' l_text? '}';
+ int = digit digit* |
+       base_prefix alpha alpha* |
+       '0' ''' char_item;
+ unsigned_float = simple_float |
+                  simple_float exp exponent;
+ variable = underline alpha* |
+            cap_letter alpha*;
+ string = '"' string_item* '"';
+ layout_text = l_text;
+
+Ignored Tokens
+ ;
+
+Productions
+ program = {nonempty} sentence* |
+           {empty} layout_text;
+ sentence = any* fullstop;
+ any = {token} token |
+       {list} nonempty_list |
+       {condition} gr_condition;
+ token = {emptylist} empty_list |
+         {cut} cut_sym |
+         {inf} infinity |
+         {nan} no_number |
+         {comma} comma |
+         {punctuation} punctuation_char |
+         {name} name |
+         {int} int |
+         {float} unsigned_float |
+         {variable} variable |
+         {string} string |
+         {layout} layout_text;
+ nonempty_list = bracket_l any* bracket_r;
+ gr_condition = curly_l any* curly_r;

@@ -1,0 +1,35 @@
+<!ENTITY % generalProofInfo SYSTEM "GeneralProofInfoDTD.dtd">
+
+%generalProofInfo;
+
+<!ENTITY % sccProofInfo SYSTEM "SccProofInfoDTD.dtd">
+
+%sccProofInfo;
+
+<!ENTITY % order SYSTEM "PathorderDTD.dtd">
+
+%order;
+
+<!ELEMENT AfsSccProof (GeneralProofInfo, SccProofInfo, Pathorder, OrientedSymbols, OrientedRules,  AFS, UType)>
+
+<!ELEMENT OrientedSymbols (Defsym*)> 
+
+<!ELEMENT OrientedRules (Rule*)>
+
+<!ELEMENT UType (Int)>
+
+<!ELEMENT AFS (Map, Unfinished, Rules)>
+
+<!ATTLIST AFS trivial (yes|no) "no">
+
+<!ELEMENT Map (MapEntry*)>
+
+<!ELEMENT MapEntry (Key, Value)>
+
+<!ELEMENT Key (Defsym|Conssym|Tuplesym)>
+
+<!ELEMENT Value (Int)>
+
+<!ELEMENT Unfinished ((Defsym|Conssym|Tuplesym)*)>
+
+<!ELEMENT Rules (Rule*)>

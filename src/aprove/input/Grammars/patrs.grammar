@@ -1,0 +1,107 @@
+//
+//   Title:        PATRS grammar
+//   Description:  grammar definition for PATRS programs
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2008
+//   Authors:      Stephan Falke
+//   Department:   Department of Computer Science
+//   Institution:  University of New Mexico
+//
+//   $Id$
+//
+Package aprove.input.Generated.patrs;
+
+Helpers
+  digit = ['0' .. '9'];
+  letter = [['a' .. 'z'] + ['A' .. 'Z']];
+  new_line = (10|13|10 13);
+
+Tokens
+  open = '(';
+  close = ')';
+  s_open = '[';
+  s_close = ']';
+  comma = ',';
+  pipe = '|';
+  arrow = '->';
+  conj = '/\';
+  gtr = '>';
+  gtreq = '>=';
+  eq = '=';
+  univ = 'univ';
+  int = 'int';
+  colon = ':';
+  use = 'use';
+  list = 'List-Insert';
+  seq = 'List-Union';
+  compactins = 'Compact-List-Insert';
+  compactuni = 'Compact-List-Union';
+  mulsetins = 'Multiset-Insert';
+  mulsetuni = 'Multiset-Union';
+  setins = 'Set-Insert';
+  setuni = 'Set-Union';
+  regularid = letter (letter | digit | '_' | 39 )*;
+  specialid = '+' | '-' | '0' | '1';
+  integer = digit*;
+  delimiter = new_line+;
+  blanks = (' ' | 9 )+;
+  line_comments = new_line*'#' [[0..0xffff]-[10+13]]*;
+  full_comments = new_line*'~' [[0..0xffff]-'~']*'~';
+
+Ignored Tokens
+  blanks, line_comments, full_comments;
+
+Productions
+  program = fdecls usedecls? ruledecls delimiter?;
+  id =
+    {regular} regularid |
+    {special} specialid;
+  fdecls = delimiter? fdecllist;
+  fdecllist = fdecldelim* fdecl;
+  fdecldelim = fdecl delimiter;
+  fdecl = s_open id colon sortlist? arrow sortid csdecl? s_close;
+  sortlist = sortcomma* sortid;
+  sortcomma = sortid comma;
+  sortid =
+    {univ} univ |
+    {int} int;
+  csdecl = open intlist close;
+  intlist = intt*;
+  intt = {integer} integer | {special} specialid;
+  usedecls = delimiter usedecllist;
+  usedecllist = usedecldelim* usedecl;
+  usedecldelim = usedecl delimiter;
+  usedecl = use builtinid open idlist close;
+  builtinid =
+    {listi} list |
+    {sequ} seq |
+    {compact_ins} compactins |
+    {compact_uni} compactuni |
+    {mulset_ins} mulsetins |
+    {mulset_uni} mulsetuni |
+    {set_ins} setins |
+    {set_uni} setuni;
+  idlist = idcomma* id;
+  idcomma = id comma;
+  ruledecls = delimiter rulelist;
+  rulelist = ruledelim* rule;
+  ruledelim = rule delimiter;
+  rule =
+    {simple} simple constraint?;
+    // | {conditional} conditional constraint?;
+  simple = [left]:term arrow [right]:term;
+  //conditional = condlist pipe delimiter? simple;
+  //condlist = simplecomma* simple;
+  //simplecomma = simple comma delimiter?;
+  term =
+    {const_var} id |
+    {funct_app} id open termlist close;
+  termlist = termcomma* term;
+  termcomma = term comma;
+  constraint = s_open paatomlist s_close;
+  paatomlist = paatomconj* paatom;
+  paatomconj = paatom conj;
+  paatom =
+    {gtratom} [l]:term gtr [r]:term |
+    {gtreqatom} [l]:term gtreq [r]:term |
+    {eqatom} [l]:term eq [r]:term;

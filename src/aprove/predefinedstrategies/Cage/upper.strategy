@@ -1,0 +1,83 @@
+# entry point
+main = BareJBCToJBC : RunDefaultStrategyForObligation
+
+# our strategy for complexity analysis
+jbcComplexity =
+  # as soon as one of the two substrategies succeeds, AProVE prints the result and terminates
+  Any(
+    jbcEval,
+    jbcComplexity
+  )
+
+# symbolic evaluation without abstraction
+# if it terminates, then we have proven constant complexity
+jbcEval =
+  Timer(1000,
+    JBCToTerminationGraph[
+      TryNontermProofs=False,
+      LoopMaximalIterations=2147483647,
+      LoopMergeCostBase=0,
+      LoopMergeCostChange=0,
+      IncomingInstanceFinder=False,
+      TryMerging=False,
+      TrySeparateMethodAnalysis=False,
+      TryParallelPathMerging=False,
+      Multithreaded=False
+    ]
+  ) : TerminationGraphToSCC
+
+# our sophisticated complexity analysis technique...
+jbcComplexity =
+  # start with the symbolic execution...
+  JBCToTerminationGraph[
+    # non-termination is currently disabled, as it doesn't work with method summaries
+    TryNontermProofs=False,
+    # recursion is disabled, as it's not support for complexity analysis
+    TrySeparateMethodAnalysis=False
+  ]
+  # ...then translate the SE-graph to an ITS
+  ; jbcITSCage
+
+jbcITSCage = jbcKoat
+
+jbcCofloco =
+  jbcEdgesForCES;
+  JBCGraphEdgesToIntTrs[SimpleDivModEncoding=False];
+  jbcIntTrsChain;
+  jbcIntTrsSimplify;
+  WeightedIntTrsToCES
+
+jbcKoat =
+  jbcEdgesForITS;
+  JBCGraphEdgesToIntTrs[FilterFieldsOfTypeObject=True, PreciseTreeEncoding=False];
+  jbcIntTrsChain;
+  jbcIntTrsSlice;
+  jbcIntTrsSimplify;
+  TRSDumpProcessor[OutputDir="/tmp/"];
+  WeightedIntTrsToKoAT
+
+jbcEdgesForITS =
+    Maybe(SEGraphDataFlow) :
+    TerminationGraphToComplexityRuleSet[
+      ApplyAnalyses = "aprove.verification.oldframework.Bytecode.Processors.ToSCC.UsedFieldsAnalysis",
+      KeepLeaves=False
+    ]
+
+jbcEdgesForCES =
+    TerminationGraphToComplexityRuleSet[
+      ApplyAnalyses = "aprove.verification.oldframework.Bytecode.Processors.ToSCC.UsedFieldsAnalysis",
+      KeepLeaves=True
+    ]
+
+jbcIntTrsChain = Maybe(WeightedIntTrsStraightLineCodeCompression)
+
+jbcIntTrsSlice =
+    Maybe(WeightedIntTrsUnneededArgumentFilter);
+    Maybe(WeightedIntTrsDuplicateArgumentFilter)
+
+jbcIntTrsSimplify =
+    Maybe(WeightedIntTrsMoveArithmeticFromLhssToConstraints);
+    Maybe(WeightedIntTrsLinearizeLhss);
+    Maybe(WeightedIntTrsRemoveUnsupportedOperators);
+    Maybe(WeightedIntTrsMoveArithmeticFromConstraintsToRhss);
+    Maybe(WeightedIntTrsExprSimplification)

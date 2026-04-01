@@ -1,0 +1,57 @@
+//
+//   Title:       Exchangeable SRS grammar
+//   Description: A grammar definiton for SRS programs in the exchange-format.
+//   Project:     AProVE
+//   Authors:     Stephan Falke
+//   Copyright:   Copyright (c) 2004
+//   Department:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.xsrs;
+
+Helpers
+  blank = (' ' | 9 | 10 | 13 );
+  
+Tokens
+  open = '(';
+  close = ')';
+  comma = ',';
+  pipe = '|';
+  key_rules = 'RULES';
+  key_strategy = 'STRATEGY';
+  key_leftmost = 'LEFTMOST';
+  key_rightmost = 'RIGHTMOST';
+  blanks = blank+;
+  arrow = '->';
+  id = [[0x0000 .. 0xffff] - [' ' + [ '(' + [ ')' + [ '"' + [ ',' + [ 9 + [ 10 + 13 ]]]]]]]]+;
+  string = '"' [ [0x0000 .. 0xffff] - '"']* '"';
+
+Ignored Tokens
+  blanks;
+
+Productions
+  spec = specdecl*;
+  specdecl = open decl close;
+  decl = 
+    {rulesdecl} key_rules listofrules? |
+    {strategydecl} key_strategy strategydecl |
+    {anydecl} id anylist;
+  anylist = 
+    {epsi} |
+    {id} id anylist |
+    {string} string anylist |
+    {braces} open [l]:anylist close [r]:anylist |
+    {comma} comma anylist |
+    {arrow} arrow anylist;
+  listofrules = rulecomma* rule comma?;
+  rulecomma = rule comma;
+  rule = 
+    {simple} [left]:word arrow [right]:word |
+    {collapse} [left]:word arrow;
+  word = idi+;
+  idi = id;
+  strategydecl = 
+    {leftmost} key_leftmost |
+    {rightmost} key_rightmost;
+    

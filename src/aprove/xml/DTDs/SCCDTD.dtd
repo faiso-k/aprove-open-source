@@ -1,0 +1,8 @@
+<!ENTITY % dpGraph SYSTEM "DPGraphDTD.dtd">
+
+%dpGraph;
+
+<!ELEMENT SCC (DpGraph, Program)>
+
+<!ATTLIST SCC innermost (yes|no) #REQUIRED
+              reversed (yes|no) #REQUIRED>

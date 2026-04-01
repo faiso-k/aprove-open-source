@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+import os
+import sys
+from pathlib import Path
+
+
+HELP_TEXT = """\
+AProVE - Automated Program Verification Environment (Docker Container)
+http://aprove.informatik.rwth-aachen.de
+
+Usage:
+  solver [--timeout N] [--timeout=N] --category NAME [--cert] BENCHMARK
+
+Options:
+  --help            Print this help and exit
+  --version         Print version and exit
+  --name            Print solver name and exit
+  --license         Print the AProVE license
+  --timeout <N>     Timeout in seconds   (also accepts --timeout=N)
+  --category <C>    Category (exact TPDB directory name)
+  --cert            Emit CPF2 + convert to CPF3 (CETA-compatible)
+"""
+
+
+def main(argv: list[str]) -> int:
+    # Simple subcommands (match first argument only like the bash version)
+    if argv:
+        first = argv[0]
+        if first == "--name":
+            print("AProVE25")
+            return 0
+        if first in ("-version", "--version"):
+            print("AProVE 2025 Termcomp Version")
+            return 0
+        if first in ("-help", "--help"):
+            sys.stdout.write(HELP_TEXT)
+            return 0
+        if first in ("-license", "--license"):
+            with open("/licenses/aprove", "r", encoding="utf-8") as fh:
+                sys.stdout.write(fh.read())
+            return 0
+
+    timeout = "60"
+    category = ""
+    benchmark = ""
+    cert = False
+
+    args = list(argv)
+    while args:
+        arg = args.pop(0)
+        match arg:
+            case opt if opt.startswith("--timeout="):
+                timeout = opt.split("=", 1)[1]
+            case "--timeout":
+                if not args:
+                    print("Error: --timeout requires a value", file=sys.stderr)
+                    return 2
+                timeout = args.pop(0)
+            case opt if opt.startswith("--category="):
+                category = opt.split("=", 1)[1]
+            case "--category":
+                if not args:
+                    print("Error: --category requires a value", file=sys.stderr)
+                    return 2
+                category = args.pop(0)
+            case "--cert":
+                cert = True
+            case opt if opt.startswith("--"):
+                print(f"Error: unknown option: {opt}", file=sys.stderr)
+                return 2
+            case bench:
+                if benchmark:
+                    print(f"Error: multiple benchmarks: '{benchmark}' and '{bench}'", file=sys.stderr)
+                    return 2
+                benchmark = bench
+
+    if not benchmark:
+        print("Usage: solver --timeout N --category NAME [--cert] BENCHMARK", file=sys.stderr)
+        return 2
+
+    # Locate handlers directory
+    script_dir = Path(__file__).resolve().parent
+    candidates = []
+    solver_root = os.environ.get("SOLVER_ROOT")
+    if solver_root:
+        candidates.append(Path(solver_root) / "handlers")
+    candidates.extend(
+        [
+            script_dir.parent / "handlers",
+            Path("/opt/solver/handlers"),
+            script_dir / "handlers",
+        ]
+    )
+
+    handlers_dir = next((p for p in candidates if p.is_dir()), None)
+    if handlers_dir is None:
+        checked = " ".join(str(p) for p in candidates)
+        print(f"Error: handlers dir not found. Checked: {checked}", file=sys.stderr)
+        return 3
+
+    handler = handlers_dir / f"{category}.sh"
+    default = handlers_dir / "__default__.sh"
+
+    if not category or not (handler.exists() and os.access(handler, os.X_OK)):
+        if default.exists() and os.access(default, os.X_OK):
+            handler = default
+        else:
+            print(f"Error: no handler for category '{category}' in '{handlers_dir}'", file=sys.stderr)
+            return 4
+
+    if os.environ.get("DEBUG_SOLVER") == "1":
+        print(f"DEBUG: HANDLERS={handlers_dir} handler={handler}", file=sys.stderr)
+
+    os.environ["TIMEOUT"] = timeout
+    os.environ["BENCHMARK"] = benchmark
+    os.environ["CERT"] = "true" if cert else "false"
+
+    # Exec the handler script
+    handler_path = handler.as_posix()
+    os.execv(handler_path, [handler_path])
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

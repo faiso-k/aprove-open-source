@@ -1,0 +1,21 @@
+<!ENTITY % trs SYSTEM "TRSDTD.dtd">
+
+%trs;
+
+<!ELEMENT DpGraph (Nodes, Edges)>
+
+<!ELEMENT Nodes (Node*)>
+
+<!ELEMENT Node (Rule)>
+
+<!ATTLIST Node number CDATA #REQUIRED>
+
+<!ELEMENT Edges (Edge*)>
+
+<!ELEMENT Edge (Node, Node, Label)>
+
+<!ATTLIST Edge number CDATA #REQUIRED>
+
+<!ELEMENT Label ANY>
+
+<!ELEMENT NodeSet (Node*)>

@@ -1,0 +1,92 @@
+//
+//   Title:        FP pre-parse grammar
+//   Description:  grammar definition for pre-parsing FP programs
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2003
+//   Authors:      Christian Haselbach
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.fppp;
+
+Helpers
+ digit = ['0' .. '9'];
+ letter = [['a' .. 'z'] + ['A' .. 'Z']];
+ infixletter = ( '@' | '|' | '&' | '%' | '/' | '\' | ':' | '-' | '+' | '*' | '.' | '<' | '>' | '=' | '!' | '$' | '?' | '^' | [0x2200..0x22ff]);
+
+Tokens
+ infix = 'infix';
+ infixl = 'infixl';
+ infixr = 'infixr';
+ ac = 'ac';
+ open = '(';
+ close = ')';
+ comma = ',';
+ arrow = '->' | 0x2192;
+ if = 'if';
+ let = 'let';
+ in = 'in';
+ private = 'private';
+ structure = 'structure';
+ function = 'function';
+ isa = 'isa_'(infixletter+|(letter | digit| '!')(letter | digit | '_' | 39 )*);
+ id = (letter | digit | '[]' | '_' | 39 )+;
+ infixid = infixletter+;
+ blanks = (13 | 10 | 9 | ' ')+;
+ line_comments = '#' [[0..0xffff]-[10+13]]*(10|13|10 13)?;
+ full_comments = '~' [[0..0xffff]-'~']*'~';
+
+Ignored Tokens
+ blanks, line_comments, full_comments;
+
+Productions
+  program = decl+;
+  decl = 
+    {opdef} opdef |
+    {struct} struct |
+    {funct} funct |
+    {infix} infixdef ; 
+  struct = structure [structname]:id gconstr+;
+  gconstr =
+    {constr} constr |
+    {infixconstr} infixconstr;
+  constr = [cons]:id [colon]:infixid selidlist? [return]:id;
+  infixconstr = open [cons]:infixid close [options]:options [colon]:infixid selidlist? [return]:id;
+  funct = private? function [functname]:id [colon]:infixid idlist? [return]:id stuff;
+  opdef = private? function open [opname]:infixid close [options]:options [colon]:infixid idlist? [return]:id stuff;
+  idlist = idcomma* id arrow;
+  idcomma = id comma;
+  selidlist = selidcomma* [sort]:id selector? arrow;
+  selidcomma = [sort]:id selector? comma;
+  selector = [dot]:infixid [name]:id;
+  stuff =
+    {s1} stuff stuff1 |
+    {s2} stuff1;
+  stuff1 =
+    {s3} open innerstuff close |
+    {s4} if |
+    {s5} id |
+    {s6} infixid |
+    {s7} isa |
+    {s8} let innerstuff in;
+  innerstuff =
+    {s1} innerstuff comma? stuff1 |
+    {s2} stuff1;
+
+  
+  options = 
+    {key} [options1]:id* optionkey [options2]:id* |
+    {no} id*;
+  optionkey =
+    {infix} infixity |
+    {ac} ac ;
+
+  infixdef = 
+    infixity open [opname]:infixid close [colon]:infixid id;
+  infixity =
+    {no} infix |
+    {l} infixl |
+    {r} infixr ;
+

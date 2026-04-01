@@ -1,0 +1,20 @@
+main = RunDefaultStrategyForObligation
+
+# ================================================= #
+# ==================== HASKELL ==================== #
+# ================================================= #
+
+hs = HaskellLambdaReduction:
+     HaskellCaseReduction:
+     HaskellIfReduction:
+     HaskellIrrPatReduction:
+     HaskellBindingReduction:
+     HaskellCondReduction:
+     HaskellNewTypeReduction:
+     HaskellIrrPatReduction:
+     HaskellLetReduction:
+     HaskellNumReduction:
+     HaskellSplit:
+     HaskellNarrowing[AddTypes = False, TerminationStrategy="dumpQDP", NonTerminationStrategy="dumpQDP"]
+
+dumpQDP = TRSDumpProcessor

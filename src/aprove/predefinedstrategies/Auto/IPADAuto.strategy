@@ -1,0 +1,29 @@
+symbDel = Maybe(SymbolicSimplifier); Maybe(DeleteUnneededFunctions)
+funcComb = Maybe(FunctionCombinationSimplifier; symbDel)
+funcMerge = RepeatS(0,3, FunctionMergeSimplifier; Maybe(FunctionCombinationSimplifier); symbDel)
+ident = Maybe(IdentityTransformationSimplifier); symbDel
+fixed = Maybe(FixedValueSimplifier); Maybe(SymbolicSimplifier)
+argElim = Maybe(ArgumentEliminationSimplifier); symbDel
+recShift = Maybe(RecursionShiftSimplifier)
+cntxtMove = Maybe(ContextMoveSimplifier)
+cntxtSplit = Maybe(ContextSplitSimplifier); Maybe(DeleteUnneededFunctions)
+boolPredef = RepeatS(0,*, BoolPredefSimplifier; Maybe(SymbolicSimplifier)); Maybe(DeleteUnneededFunctions)
+syn = Maybe(SynonymSimplifier; Maybe(SymbolicSimplifier))
+
+simp = symbDel; funcComb; funcMerge; ident; fixed; argElim; recShift; cntxtMove; symbDel; cntxtSplit; boolPredef; syn
+
+nmrb = SwitchToNextMRB[DPsStrategy="workOnDPs"]; simp
+
+main = TRSToSimplifierProblem; RepeatS(0,*, nmrb)
+
+
+workOnDPs = Solve(RepeatS(0,*,First(defaults, QDPATransformation, solver1, decr, solver2, incr , Any(Timer(4000, QDPNonTerm), solver3))))
+
+defaults = First(QDPDependencyGraph, QDPMNOC, QDPUsableRules , QDPQReduction)
+
+solver1 = First(QDPSizeChange[Subterm = True], Timer(2000,QDPUsableRulesRP[Range = 2]), Timer(2000, QDPRuleRemoval[Range = 2]))
+solver2 = Any(Timer(5000, QDPPolo[Engine=SAT4J]) , Timer(2000, QDPNegPolo[Range=-1]), Timer(3000, QDPSATAfsSolver[Order=LPO[Quasi=False]]))
+solver3 = First(QDPPolo[Degree = 1, Range = 2, Engine=SAT4J] , QDPPolo[Degree = 0, Range = 1, Engine=SAT4J])
+
+decr = Repeat(1,*,First(QDPRewriting, QDPNarrowing , QDPInstantiation):Repeat(0,*,defaults))
+incr = Repeat(1,*,First(QDPRewriting , QDPNarrowing[Limit = 1]):Repeat(0,*,defaults))

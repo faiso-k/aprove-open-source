@@ -1,0 +1,8 @@
+main = RunDefaultStrategyForObligation
+
+c = Any(Solve(CToLLVM:RunDefaultStrategyForObligation))
+
+irsUsingLoAT = IRSNoOverapproximation:IRSToKoat:LoAT[WitnessGeneration=RETRACING_SIMPLIFICATIONS]
+
+llvmTermination = LLVMToSEGraph[Solver=HEURISTICS, UseOptimizations=True, Bounded=False, ProveMemorySafety=True]:
+						Prove(LLVMSEGraphToIntTRS:irsUsingLoAT)

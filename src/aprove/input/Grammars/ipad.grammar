@@ -1,0 +1,96 @@
+//
+//   Title:
+//   Description:  grammar definition for IMP programs
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2003
+//   Authors:      Christian Haselbach
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.ipad;
+
+Helpers
+ digit = ['0' .. '9'];
+ letter = [['a' .. 'z'] + ['A' .. 'Z']];
+ infixletter = ( '@' | '|' | '&' | '%' | '/' | '\' | ':' | '+' | '-' | '*' | '.' | '<' | '>' | '=' | '!' | '$' | '?' | '^' | '~' );
+ notcommentend = [[0..0xffff]-'*'] | '*' [[0..0xffff]-'/'];
+
+Tokens
+ open = '(';
+ close = ')';
+ bopen = '{';
+ bclose = '}';
+ semicolon = ';';
+ equal = '=';
+ comma = ',';
+ arrow = '->' | 0x2192;
+ if = 'if';
+ else = 'else';
+ while = 'while';
+ do = 'do';
+ for = 'for';
+ void = 'void';
+ skip = 'skip';
+ var = 'var';
+ structure = 'structure';
+ return = 'return';
+ wterm = 'witnessterm';
+ // id = (letter | digit | '!') (letter | digit | '_' | 39 )*;
+ id = (letter | '_' | '$' | '!') (letter | digit | '_' | 39)*;
+ infixid = infixletter+;
+ blanks = (13 | 10 | 9 | ' ')+;
+ intnumber = digit+;
+ line_comments = '//' [[0..0xffff]-[10+13]]*(10|13|10 13)?;
+ full_comments = '/*' notcommentend*'*/';
+
+Ignored Tokens
+ blanks, line_comments, full_comments;
+
+Productions
+ program = decl+;
+ decl =
+  {struct} struct |
+  {funct} funct;
+ struct = structure [structname]:id bopen constr+ bclose witnessterm? ;
+ witnessterm = wterm term semicolon;
+ constr = [cons]:id [colon]:infixid idlist? [return]:id semicolon;
+ idlist = idcomma* [type]:id [selector]:id arrow;
+ idcomma = [type]:id [selector]:id comma;
+ funct = typevoid [functname]:id open paramlist? close bopen statementlist bclose;
+ typevoid =
+   {type} type |
+   {void} void;
+ type = id ;
+ paramlist = paramcomma* param;
+ paramcomma = param comma;
+ param = var? type id;
+ statementlist =
+   {empty} |
+   {non_empty} ne_statementlist;
+ ne_statementlist = statement ne_statementlist? ;
+ statement =
+   {ifthenelse} if [condstmt]:term [pot]:bopen [thenstmt]:statementlist [pct]:bclose else [poe]:bopen [elsestmt]:statementlist [pce]:bclose |
+   {ifthen} if [condstmt]:term bopen [thenstmt]:statementlist bclose |
+   {block} bopen statementlist bclose |
+   {return} return term? semicolon | 
+   {while} while term bopen statementlist bclose |
+   {do_while} do bopen statementlist bclose while open term close |
+   {for} for open [init]:simple_statement? [s1]:semicolon [cond]:term? [s2]:semicolon [end]:simple_statement? close bopen statementlist bclose |
+   {simple} simple_statement semicolon ;
+ simple_statement = 
+   {assign} type? id equal term |
+   {skip} skip |
+   {call} id open termlist close ;
+ termlist = term commaterm* ;
+ commaterm = comma term ;
+ term =
+   {operator_app} [left]:sterm infixid [right]:term |
+   {sterm} sterm ;
+ sterm =
+   {braces} open term close |
+   {const_var} id |
+   {funct_app} id open termlist close |
+   {unary_op} [unary]:infixid [neg_sterm]:sterm |
+   {int_number} [intnum]:intnumber ;

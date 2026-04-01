@@ -1,0 +1,73 @@
+//
+//   Title:       Exchangeable CLS grammar
+//   Description: A grammar definiton for CLS programs
+//   Project:     AProVE
+//   Authors:     Peter Schneider-Kamp
+//   Copyright:   Copyright (c) 2009
+//   Department:  Syddansk Universitet / Campusvej 55 / 5230 Odense M
+//
+//   $Id$
+//
+Package aprove.input.Generated.cls;
+
+Helpers
+  blank = (' ' | 9 | 10 | 13 | 0);
+  
+Tokens
+  open = '(';
+  close = ')';
+  sopen = '[';
+  sclose = ']';
+  copen = '{';
+  cclose = '}';
+  comma = ',';
+  pipe = '|';
+  key_var = 'VAR';
+  key_rules = 'RULES';
+  key_initial = 'INITIAL';
+  blanks = blank+;
+  arrow = '->';
+  at = '@';
+  id = [[0x0000 .. 0xffff] - [' ' + [ '(' + [ ')' + [ '"' + [ ',' + [ 9 + [ 10 + [ 13 + [ 64 + [ '[' + ']' ]]]]]]]]]]]+;
+  string = '"' [ [0x0000 .. 0xffff] - '"']* '"';
+
+Ignored Tokens
+  blanks;
+
+Productions
+  spec = specdecl*;
+  specdecl = open decl close;
+  decl = 
+    {vardecl} key_var idlist |
+    {rulesdecl} key_rules listofrules |
+    {initialdecl} key_initial listofterms |
+    {anydecl} id anylist;
+  anylist = 
+    {epsi} |
+    {id} id anylist |
+    {string} string anylist |
+    {braces} open [l]:anylist close [r]:anylist |
+    {sbraces} sopen [l]:anylist sclose [r]:anylist |
+    {cbraces} copen [l]:anylist cclose [r]:anylist |
+    {comma} comma anylist |
+    {pipe} pipe anylist;
+  idlist = idi*;
+  idi = id comma?;
+  listofrules = rule*;
+  rule =
+    {simple} simple |
+    {conditional} conditional;
+  simple = [left]:term arrow [right]:term;
+  conditional = simple pipe condlist;
+  condlist = condcomma* cond;
+  condcomma = cond comma;
+  cond =
+    {real} [left]:term arrow [right]:term |
+    {poor} term;
+  listofterms = term*;
+  term =
+    {spec_var} [var]:id at sopen anylist sclose |
+    {const_var} id |
+    {funct_app} id open termlist? close;
+  termlist = termcomma* term;
+  termcomma = term comma;    

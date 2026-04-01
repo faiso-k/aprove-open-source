@@ -1,0 +1,5 @@
+<!ENTITY % rule SYSTEM "RuleDTD.dtd">
+
+%rule;
+
+<!ELEMENT Program (Rule+)>

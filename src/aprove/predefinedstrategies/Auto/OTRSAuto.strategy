@@ -1,0 +1,163 @@
+# CANDIDATE 17 (modified to use QDPComplexConstantRemoval)
+
+main = WST07Heuristic
+
+otrs = Any( \
+  OTRSNonTerminationProcessor, \
+  Solve(OTRSToQTRS[Transformation=ThiemannII]:qtrs), \
+  Prove(OTRSToQTRS[Transformation=Trivial]:qtrs2), \
+  Prove(OTRSToQTRS[Transformation=RaffelsieperZantema]:qtrs2) \
+)
+
+qdp =Maybe(depgraph) \
+     : First( \
+             Solve(RepeatS(0,*,workOnDPs)), \
+             RepeatS(0,*,nontermOnDPs) \
+            )
+qdp2 = RepeatS(0,*,workOnDPs)
+
+
+
+
+# TRS standard
+qtrs = Repeat(0,*,Timer(1200, QTRSRRRPolo[Degree = 1, Range = 2, Autostrict = False, MaxSimpleDegree = 5, Engine = MINISAT])) \
+     : Maybe(QTRSAAECCNOC[Limit = 1]) \
+     : QTRSDependencyPairs \
+     : qdp
+qtrs2 = Repeat(0,*,Timer(1200, QTRSRRRPolo[Degree = 1, Range = 2, Autostrict = False, MaxSimpleDegree = 5, Engine = MINISAT])) \
+     : Maybe(QTRSAAECCNOC[Limit = 1]) \
+     : QTRSDependencyPairs \
+     : qdp2
+workOnDPs = First( \
+                  defaults, \
+                  QDPATransformation[BeComplete = True, KeepMinimality = True], \
+                  solver1, \
+                  tosrs, \
+                  decr, \
+                  solver2, \
+                  If[Condition=CONSTNARR07, Sub1="basicNI"], \
+                  If[Condition=CONSTNARR07, Sub1="advancedNI"], \
+                  incr, \
+                  Timer(3500, QDPNonTerm[Heuristic = ONLY_FORWARD_NARROWING, TotalLimit = 3, LeftLimit = 0, RightLimit = 3]), \
+                  solver3 \
+                 )
+
+defaults = First( \
+                 depgraph, \
+                 Timer(500, QDPMNOC[TestDepth = 2]), \
+                 QDPUsableRules[BeComplete = True, UseApplicativeCeRules = True], \
+                 QDPQReduction \
+                )
+solver1 = First( \
+                Timer(250, QDPSizeChange[Subterm = True]), \
+                MRR06Heuristic[Sub1="usableRulesRP2", Sub2="ruleRemoval2", AllowATransformation=True], \
+                Timer(250, QDPMatchbounds[EdgeBound=700, NodeBound=300]) \
+               )
+ruleRemoval2 = Timer(500, QDPRuleRemoval[Degree = 1, Range = 2, Mode = SEARCHSTRICT, MaxSimpleDegree = 5, Engine = MINISAT])
+usableRulesRP2 = Timer(900, QDPUsableRulesRP[AllowATransformation = True, Degree = 1, Range = 2, MaxSimpleDegree = 5, Engine = MINISAT])
+tosrs = QDPToSRS[Zantema = True] : QTRSDependencyPairs
+decr = Repeat(1,*,First( \
+                        Timer(500,QDPRewriting[Limit = 50, BeComplete = False]), \
+                        Timer(500,QDPNarrowing[Limit = 0, BeComplete = False, Positional = True]), \
+                        Timer(500,QDPInstantiation[Limit = 0]) \
+                       ) : Repeat(0,*,defaults))
+solver2 = Any( \
+                Timer(5000, QDPReductionPair[Active = True, Allstrict = False, Order = RPOS[Quasi = True, Engine=MINISAT]]), \
+                Timer(7000, QDPReductionPair[Active = True, Allstrict = False, Order = POLO[Degree = 1, Range = 1, MaxSimpleDegree = 4, Engine = MINISAT], MergeMutual = True]), \
+                Timer(5000, QDPReductionPair[Active = True, Allstrict = False, Order = MATRO[Engine=MINISAT], MergeMutual = True]) \
+               )
+
+
+
+
+
+
+basicNI = Maybe(QDPComplexConstantRemoval):First( \
+              Timer(1500, QDPNonInfReductionPair[InductionCounter = 2, LeftChainCounter = 1, RightChainCounter = 0, Engine=MINISAT]), \
+              Timer(1500, QDPNonInfReductionPair[InductionCounter = 2, LeftChainCounter = 0, RightChainCounter = 1, Engine=MINISAT]) \
+              )
+
+advancedNI = If[Condition = BRANCHING, Sub1 = "tupleNI", Sub2 = "checkMax"]
+checkMax = If[Condition = SINGLERULE, Sub1 = "maxNIlong", Sub2 = "maxNIshort"]
+
+maxNIlong = Timer(12000, Maybe(QDPComplexConstantRemoval):QDPNonInfReductionPair[InductionCounter = 4, LeftChainCounter = 0, RightChainCounter = 1, Maximum=1, MaximumForSmall=2, Minimum=1, Engine=MINISAT])
+maxNIshort = Timer(6000, Maybe(QDPComplexConstantRemoval):QDPNonInfReductionPair[InductionCounter = 4, LeftChainCounter = 0, RightChainCounter = 1, Maximum=1, MaximumForSmall=2, Minimum=1, Engine=MINISAT])
+tupleNI = Timer(6000, Maybe(QDPComplexConstantRemoval):QDPNonInfReductionPair[InductionCounter =2, Maximum = 1, DegreeTuple = -2, LeftChainCounter = 2, RightChainCounter = 0, Engine=MINISAT])
+
+
+incr = Repeat(1,*,First( \
+                        Timer(500,QDPRewriting[Limit = 50, BeComplete = False]), \
+                        Timer(500,QDPNarrowing[Limit = 1, BeComplete = False, Positional = True]), \
+                        Timer(500,QDPInstantiation[Limit = 2]), \
+                        Timer(2000,QDPForwardInstantiation[Limit = 1]) \
+                       ) : Repeat(0,*,defaults))
+solver3 = First( \
+                Timer(600, QDPReductionPair[Active = True, Allstrict = False, Order = NEGPOLO[Range=-1, Restriction=2, Engine=MINISAT]]), \
+                Timer(10000, QDPReductionPair[Active = True, Allstrict = False, Order = MATRO[Range = 3, Engine = MINISAT], MergeMutual = True]), \
+                Timer(4500, QDPReductionPair[Active = True, Allstrict = False, Order = POLO[Degree = 0, Range = 1, MaxSimpleDegree = 4, Engine = MINISAT], MergeMutual = True]), \
+                Timer(20000, QDPSemanticLabelling[CarrierSetSize = 2, Strategy="semlab", AllowQuasi=False, Engine=MINISAT, IncrementalEngine=INCREMENTAL]) \
+               )
+semlab = RepeatS(1,*, First( \
+                            QDPDependencyGraph, \
+                            MRR06Heuristic[AllowATransformation = False, Sub1="usableRulesRP1", Sub2="ruleRemoval1"], \
+                            Timer(7500,QDPReductionPair[Active = True, Allstrict = False, Order = POLO[Degree = 1, Range = 1, MaxSimpleDegree = 4, Engine = MINISAT], MergeMutual = True]) \
+                           ))
+ruleRemoval1 = Timer(400,QDPRuleRemoval[Degree = 1, Range = 1, Mode = SEARCHSTRICT, MaxSimpleDegree = 5, Engine = MINISAT])
+usableRulesRP1 = Timer(600,QDPUsableRulesRP[AllowATransformation = False, Degree = 1, Range = 1, MaxSimpleDegree = 5, Engine = MINISAT])
+
+nontermOnDPs = First( \
+                     defaults, \
+                     QDPATransformation[BeComplete = True, KeepMinimality = False], \
+                     Timer(40000, QDPNonTerm[Heuristic = ONLY_FORWARD_NARROWING, TotalLimit = 3, LeftLimit = 0, RightLimit = 3]) \
+                    )
+
+# SRS standard
+srs = TRSToQTRS:qsrs
+qsrs = First(srskbo, Any(srsmb, Solve(srspre)))
+srskbo = Timer(3000, QTRSDirectTermination[Order = KBO])
+srsmb = First(QTRSMatchbounds[NodeBound=120, EdgeBound=240], QTRSReverse:QTRSMatchbounds[NodeBound=120, EdgeBound=240], QTRSStripSymbols:QTRSMatchbounds[NodeBound=120, EdgeBound=240], QTRSReverse:QTRSStripSymbols:QTRSMatchbounds[NodeBound=120, EdgeBound=240])
+srspre = Repeat(0,*, QTRSRRRPolo[Degree = 1, Range = 2, Autostrict = False, MaxSimpleDegree = 5, Engine = MINISAT]) \
+       : Maybe(QTRSAAECCNOC[Limit = 1]) \
+       : QTRSDependencyPairs \
+       : Maybe(QDPDependencyGraph) \
+       : Any( \
+             Solve(RepeatS(0,*,srsworkOnDPs)), \
+             Solve(RepeatS(0,*,srsnontermOnDPs)) \
+            )
+srsnontermOnDPs = First( \
+                        defaults, \
+                        Timer(6000, QDPNonTerm[TotalLimit = 3, LeftLimit = 3, RightLimit = 3]) \
+                       )
+srsworkOnDPs = First(srscommon, \
+                     QDPToSRS[Zantema = False] : QTRSReverse : qsrs2 \
+                    )
+srscommon = First(defaults, \
+                  srssolver1, \
+                  decr, \
+                  srssolver2, \
+                  incr, \
+                  srssolver3)
+srssolver1 = MRR06Heuristic[AllowATransformation = False, Sub1="usableRulesRP2", Sub2="ruleRemoval2"]
+srssolver2 = First( \
+                   QDPReductionPair[Active = True, Allstrict = False, Order=NEGPOLO[Range=-1, Restriction=2, Engine = MINISAT]], \
+                   Timer(2000, QDPReductionPair[Active = True, Allstrict = False, Order=POLO[Degree = 1, Range = 15, MaxSimpleDegree = 4, Engine = MINISAT], MergeMutual = True]), \
+                   QDPMatchbounds[NodeBound=120,EdgeBound=240] \
+                  )
+srssolver3 = QDPSemanticLabelling[CarrierSetSize = 2, Strategy="srssemlab", AllowQuasi=True]
+srssemlab = RepeatS(1,*, First( \
+                               QDPDependencyGraph, \
+                               MRR06Heuristic[AllowATransformation = False, Sub1="usableRulesRP1", Sub2="ruleRemoval1"] \
+                              ))
+qsrs2 = First(srskbo, Any(srsmb, Solve(srspre2)))
+srspre2 = Repeat(0,*, QTRSRRRPolo[Degree = 1, Range = 2, Autostrict = False, MaxSimpleDegree = 5, Engine = MINISAT]) \
+        : Maybe(QTRSAAECCNOC[Limit = 1]) \
+        : QTRSDependencyPairs \
+        : Maybe(QDPDependencyGraph) \
+        : Any( \
+              Solve(RepeatS(0,*,srscommon)), \
+              Solve(RepeatS(0,*,srsnontermOnDPs)) \
+             )
+
+# individual processors
+
+depgraph = QDPDependencyGraph

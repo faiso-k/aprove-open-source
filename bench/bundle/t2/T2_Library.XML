@@ -1,0 +1,1623 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>Microsoft.Research.T2</name></assembly>
+<members>
+<member name="F:PriorityQueue.PriorityQueue`1.nextIndex">
+<summary>
+ The next index to be used for insertion.
+</summary>
+</member>
+<member name="F:PriorityQueue.PriorityQueue`1.data">
+<summary>
+ The backing array actually containing all of our beautiful data
+</summary>
+</member>
+<member name="M:PriorityQueue.PriorityQueue`1.Trickle(System.Int32)">
+<summary>
+Restore heap property, which might be violated by data.[index] being smaller that its &quot;children&quot;
+</summary>
+</member>
+<member name="M:PriorityQueue.PriorityQueue`1.RemoveWhere(Microsoft.FSharp.Core.FSharpFunc{`0,System.Boolean})">
+<summary>
+ Remove all elements of the priority queue for which pred holds
+</summary>
+</member>
+<member name="M:PriorityQueue.PriorityQueue`1.Heapify(System.Int32)">
+<summary>
+Restore heap property, which might be violated by data.[index] being larger than its &quot;parent&quot;
+</summary>
+</member>
+<member name="T:PriorityQueue.PriorityQueue`1">
+<summary>
+ A priority queue backed by an array-based binary heap. Larger priorities come first.
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Utils.MaybeMonad">
+<summary>
+ Maybe monad.  Lightweight exception-like handling (.NET exceptions are too expensive)
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Utils.timeout(System.Double)">
+<summary>
+ Set/reset the T2 timeout mechanism
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Utils.check_timeout">
+<summary>
+ Call to see if timeout threshold has been exceeded
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Utils.Set`1.addAll.Static``2(Microsoft.FSharp.Collections.FSharpSet{``1},System.Collections.Generic.IEnumerable{``1})">
+<summary>
+Returns the set s1 \cup set_of(s2)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Utils.Set`1.removeAll.Static``2(Microsoft.FSharp.Collections.FSharpSet{``1},System.Collections.Generic.IEnumerable{``1})">
+<summary>
+Returns the set s1 \setminus set_of(s2)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Utils.memoize``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1})">
+<summary>
+ Make a cached-version of f
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Utils.die``1">
+<summary>
+ Uses .NET tricks to find out the location from which die has been called.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Utils.dieWith``1(System.String)">
+<summary>
+ Uses .NET tricks to find out the location from which dieWith has been called.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Utils.true_string(System.String)">
+<summary>
+ Return true if the input looks like its saying &quot;yes/true/etc&quot;
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Utils.run_clear">
+<summary>
+ Trigger an &quot;end event&quot;
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Utils.add_clear(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit})">
+<summary>
+ Add a function to be called at an &quot;end event&quot;
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Utils.clear_functions">
+<summary>
+ List of functions that should be called when T2 is ending some
+ reasoning and moving to a new problem.  Caches, Gensym, etc can add reset functions
+ here. Use the &quot;add_clear&quot; function
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.create_defect_files">
+<summary>
+ When testing we dont want to create a billion defect files, so we
+ can shut this option off by setting create_defect_files to false
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.seq_interpolation">
+<summary>
+ Do efficient sequential interpolation (generating all interpolants for a path in one go) instead of standard interpolation
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.seq_interpolation_ignore_last_constr">
+<summary>
+ Try to ignore constraints from the beginning
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.check_interpolants">
+<summary>
+ Double check interpolants found
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.print_interpolants">
+<summary>
+ Print interpolants found
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.chaining">
+<summary>
+ Chain transitions that connect via unlabeled nodes.
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.iterative_reachability">
+<summary>
+ Do iterative reachability proving, where only a part of the graph needs to be recomputed after changes:
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.fc_unsat_core">
+<summary>
+ Use UNSAT core to reduce interpolation constraints
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.fc_remove_on_fail">
+<summary>
+ When trying force-cover v by w fails, remove w from the candidates of v
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.fc_look_back">
+<summary>
+ Use path from root when doing force-cover
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.safety_counterexample">
+<summary>
+ Produce safety counterexamples
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.sanity_checking">
+<summary>
+ Check sanity of Impact graphs
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.dottify_input_pgms">
+<summary>
+ Generate DOT graphs of the input program
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.dottify_reachability">
+<summary>
+ Generate DOT graphs of the impact tree (at each step)
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.safety_implementation">
+<summary>
+ Type of used safety prover.
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.mcnp_style_bound_decr">
+<summary>
+ Should we use bounded/decreasing split from Lemma 31 in &quot;SAT-Based Termination Analysis Using Monotonicity Constraints over the Integers&quot; (TPLP)
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.lex_term_proof_first">
+<summary>
+ Try lexicographic termination proofs with program simplifications before starting safety proof?
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.polyrank">
+<summary>
+ Start looking for polyranking lexicographic rank functions in the event of failure with lexicographic RFs. Does nothing if lexicographic isn&apos;t on.
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.lex_opt_scc_unaffected">
+<summary>
+ Try to find a rf such that the considered relation is strictly decreasing and bounded and all SCC transitions are weakly decreasing
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.lex_opt_max_unaffect">
+<summary>
+Try to find lexicographic RFs s.t. the relations affect each other&apos;s RFs as little as possible?
+Don&apos;t have this on at the same time as fewer_rfs
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.lex_opt_fewer_rfs">
+<summary>
+Try to find lexicographic RFs of shorter length?
+Don&apos;t have this on at the same time as max_unaffect
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.lexicographic">
+<summary>
+ Try to find lexicographic rank functions for all cutpoints
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.unrolling">
+<summary>
+ If lexicographic fails, try unrolling a bit?
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.init_cond">
+<summary>
+ If lexicographic fails, try detecting initial condition?
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.prove_nonterm">
+<summary>
+ Try proving non-termination as well as termination?
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.ai_domain">
+<summary>
+ Choice of numerical domain for abstract interpretation
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.did_ai_first">
+<summary>
+ This is flipped to true if we performed AI and enables further optimizations later on
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.do_ai_threshold">
+<summary>
+ Perform numerical abstr. interpretation if we have less than !do_ai_threshold transitions
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.elim_temp_vars">
+<summary>
+ Propagates assignments to variables through the program as far as possible. Very
+ helpful to eliminate temporary variables introduced by SSA transformations (i.e.
+ when examples are coming from LLVM).
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.elim_constants">
+<summary>
+ Symbolic abstraction: change constants in the program from 5 to var5.  Constraints are added
+ so that var5&lt;var6,etc. This is needed because otherwise, the reachability graph is unwound
+ (i.e., the program is executed!) until actually reaching the constants. Not so bad for 5, but
+ very bad for 1000.
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.print_debug">
+<summary>
+ Set to true to enable verbose debug logging spew from across T2
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.print_log">
+<summary>
+ Set to true to enable verbose logging spew from across T2
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.print_stats">
+<summary>
+ Print some statistics about our efforts, after finishing
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.print_proof">
+<summary>
+ Print ranking functions / recurrence sets to stdout after the proof?
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.timeout">
+<summary>
+ Overall timeout per program (in seconds):
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Parameters.parameters.start_time">
+<summary>
+ Time when T2 execution began
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Stats.printStatistics">
+<summary>
+ Print out statistics
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Stats.incCounter(System.String)">
+<summary>
+ Increment counter s
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Stats.addToCounter(System.String,System.Int32)">
+<summary>
+ Add x to the counter s
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Stats.endTimer(System.String)">
+<summary>
+ Note end time of some timer.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Stats.startTimer(System.String)">
+<summary>
+ Record start time of some timer.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Test.register_test(System.Boolean,System.String,Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,System.Boolean})">
+<summary>
+ First argument is expected result.
+ Conventionally correct test should always return true.
+ If test is predictably failing for some reason (for instance,
+ some feature is not implemented), this value is set to false.
+ So if this feature eventually was implemented, it would show up
+ as regression, and thus attract developer&apos;s attention.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Test.register_testd(System.Boolean,Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,System.Boolean})">
+<summary>
+ if &quot;register_testd&quot; gets called we&apos;ll shut off normal testing and just run
+ the one case we&apos;re debugging ..........this allows you to easily debug a
+ broken regression test by swapping a call to &quot;register_test&quot; with
+ &quot;register_testd&quot;
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Test.run_tests(System.Double)">
+<summary>
+ run_tests should be called once register_test has been called on all
+ of the desired unit tests
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Test.found_debug">
+<summary>
+ This is set to true if we use register_testd instead of register_test.  The behavior
+ of T2 changes radically if this is set to true. We are no longer testing, but debugging
+ a test
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Dominators.well_formed(Microsoft.Research.T2.Utils.DefaultDictionary{System.Int32,System.Int32},Microsoft.FSharp.Collections.FSharpSet{System.Int32})">
+<summary>
+ Are all elements of the set dominated by one element?
+ Equivalenthly, does set have single entry point?
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Dominators.dominates(Microsoft.Research.T2.Utils.DefaultDictionary{System.Int32,System.Int32},System.Int32,System.Int32)">
+<summary>
+ Return true if a dominates b and false otherwise
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Dominators.find_dominators``3(Microsoft.Research.T2.Utils.ListDictionary{System.Int32,System.Tuple{``0,System.Tuple{``1,``2,System.Int32}}},System.Int32)">
+<summary>
+ Compute dominator tree, following the sophisticated method from Lengauer &amp; Tarjan &apos;79:
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Z.print_sat_model``1(Microsoft.FSharp.Collections.FSharpList{Microsoft.Z3.BoolExpr},Microsoft.FSharp.Collections.FSharpSet{``0})">
+<summary>
+ SAT-solve and then print the model.  Useful for debugging.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Z.simplify(Microsoft.Z3.Expr)">
+<summary>
+ Z3 term simplificaton
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Z.internalSolve(Microsoft.FSharp.Core.FSharpOption{System.UInt32},Microsoft.FSharp.Collections.FSharpList{Microsoft.Z3.BoolExpr})">
+<summary>
+ Satisfy as much formulae in the beginning of the list as possible.
+ If list is empty or first formula is UNSAT, return None.
+
+ Typical use is to call it with a list [f, h1, h2...], where f is formula
+ we absolutely want to satisfy, and h1, h2... are heuristics we&apos;d like to
+ satisfy if possible.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Z.solve_k(Microsoft.FSharp.Core.FSharpOption{System.UInt32},Microsoft.FSharp.Collections.FSharpList{Microsoft.Z3.BoolExpr})">
+<summary>
+ Return Some(k, model) for largest k such that formulae 0..k are SAT.
+ In case such k does not exist (that is, should be -1), return None.
+
+ Typical use is to call it with a list [f, h1, h2...], where f is formula
+ we absolutely want to satisfy, and h1, h2... are heuristics we&apos;d like to
+ satisfy if possible.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Z.getSolver(Microsoft.FSharp.Core.FSharpOption{System.UInt32})">
+<summary>
+ Create a simple z3 SMT Solver. Caller has to take care of disposal of the object.
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Z.z3Context">
+<summary>
+ The actual z3 context through we which pipe all of our work.
+ It should be disposed at the end of a run.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Var.get_prime_idx(System.String)">
+<summary>
+ Assuming that SSA information is after ^
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Var.prime_var(System.String,System.Int32)">
+<summary>
+ Encoding SSA using numbers after &quot;^&quot;
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Var.unprime_var(System.String)">
+<summary>
+ Assuming that SSA information is after ^
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Term.alpha(Microsoft.FSharp.Core.FSharpFunc{System.String,System.String},Microsoft.Research.T2.Term.term)">
+<summary>
+ Alpha-renaming
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Formula.fromZ3result">
+<summary>
+ Used internally. Since Z3 formulas do not distinguish between &quot;formula&quot;
+   and &quot;term&quot;, it&apos;s convenient to have a union of these two types during
+   translation.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.fromZ3(Microsoft.Z3.Expr)">
+<summary>
+ Translate a Z3.Term to a Formula.formula.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.z3f(Microsoft.Research.T2.Formula.fromZ3result)">
+<summary>
+ Get the formula from the union
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.z3t(Microsoft.Research.T2.Formula.fromZ3result)">
+<summary>
+ Get the term from the union
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.eval_const_var(System.String)">
+<summary>
+ For __const_42 return Term.Const(42).
+ To use in subst
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.unsat(Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Satisfiability procedure for T2 formulae
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.entails(Microsoft.Research.T2.Formula.formula,Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Entailment procedure for T2 formulae
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Formula.valid">
+<summary>
+ Z3-based validity procedure for T2 formulae
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.z3(Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Convert T2 Formula to Z3 Formula
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.polyhedra_dnf(Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Convert to DNF where atomic inequalities are of the form t1 &lt;= t2
+ (they are supposed to be linear, but it is not checked here)
+ This is a preferred way of simplifying formulae. It&apos;s supposed to be
+ fast: O(size of result).
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.split_disjunction(Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Break a formulae into a list of its disjuncts
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.split_conjunction(Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Break a formulae into a list of its conjuncts
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Formula.alpha(Microsoft.FSharp.Core.FSharpFunc{System.String,System.String},Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Alpha-renaming
+
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Formula.Z3_op_not_supported">
+<summary>
+ Raise this if we can&apos;t translate a Z3 formula back to Formula.formula
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.SparseLinear.term_as_linear">
+<summary>
+ ensure that term is linear and simplify it a little bit.
+ If it&apos;s not linear, Nonlinear exception is thrown
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.SparseLinear.eliminate_var(System.String,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}})">
+<summary>
+ Fourier-Motzkin elimination.
+ Terms are understood as system of inequalities t &lt;= 0.
+ (since we can&apos;t represent congruence module constant, it&apos;s
+ imprecise (consider elimination of y from x &lt;= 2*y &amp;&amp; x &gt;= 2*y))
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.SparseLinear.formula_to_linear_terms(Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Return list ts of linear terms t such that conjunction of t&lt;=0
+ is equivalent to given formula.
+ Formula is expected to be a conjunction of atomic equalities and inequalities.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.SparseLinear.simplify_as_inequalities(Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}})">
+<summary>
+ Simplify conjunction of inequalities represented by terms (as t &lt;= 0)
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.SparseLinear.simplify_as_inequality(Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger})">
+<summary>
+ divide by gcd
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.SparseLinear.ONE">
+<summary>
+ special &apos;variable&apos; name to represent constants
+
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Relation.relation">
+<summary>
+ (formula, prevars, postvars)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Relation.standardise_postvars(Microsoft.Research.T2.Relation.relation)">
+<summary>
+ Takes in a relation, and replaces the postvar indices with &quot;post&quot; throughout
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Relation.existentials(Microsoft.Research.T2.Relation.relation)">
+<summary>
+ List of additional variables mentioned in the relation formula
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.InterpolantSequence.synthesis(Microsoft.Research.T2.Parameters.parameters,System.Boolean,System.Int32,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula},Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula})">
+<summary>
+ Compute path interpolants
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.InterpolantSequence.synthesis_base_with_entailment(Microsoft.Research.T2.Parameters.parameters,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}},System.Int32,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}})">
+<summary>
+ try to find interpolant such that v |= w, where v is the last interpolant and w is &apos;entail_distance&apos; from last
+ if one inequality interpolation does not work we try to add invariants to support it
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.InterpolantSequence.synthesis_base(Microsoft.Research.T2.Parameters.parameters,System.Boolean,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}})">
+<summary>
+ Compute path interpolants.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.InterpolantSequence.gen_system(Microsoft.Research.T2.Parameters.parameters,System.Boolean,System.Boolean,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}})">
+<summary>
+ Generate interpolant constraints for a list of systems S, each system is of form A&lt;=0.
+ Return (common constraints, constraints for non-strict case, interpolants, heuristics constraints).
+ Interpolants should be understood as intp&lt;=0.
+ try_ignore_beginning: if true, the heuristics constraints will be a list of constraints enforcing the first lambdas to 0 (i.e. ignore the first nodes on the path)
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.InterpolantSequence.number_of_invars">
+<summary>
+ number_of_invars:
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.InterpolantSequence.number_of_implications">
+<summary>
+ number_of_implications: when all_implications is set to false this variable determines how many
+ implications to generate.
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.InterpolantSequence.all_implications">
+<summary>
+ all_implications: if set to true we generate constraints for all backwards implications.
+ Otherwise see number_of_implications.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.InterpolantSingle.synthesis(Microsoft.Research.T2.Parameters.parameters,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula})">
+<summary>
+ Compute path interpolants 
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.InterpolantSingle.synthesis_base(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Formula.formula,Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Return interpolant between two formulas
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.InterpolantSingle.gen_system(Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}},Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}})">
+<summary>
+ Generate interpolant constraints for systems A&lt;=0, B&lt;=0.
+ Return pair (constraints, intp). 
+ Interpolant should be understood as intp&lt;=0.
+
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Programs.Program.incompleteAbstraction">
+<summary>
+ Flag indicating that we abstracted away things in an incomplete manner and hence should not report non-term
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Programs.Program.usedConstants">
+<summary>
+ Constants used in the program.
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Programs.Program.locations">
+<summary>
+ Locations in the program
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Programs.Program.variables">
+<summary>
+ Variables in the program
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Programs.Program.activeTransitions">
+<summary>
+ x \in active iff transitions[x] != (-1,_,-1)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.TransitionsInplaceMap(Microsoft.FSharp.Core.FSharpFunc{System.Tuple{System.Int32,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},System.Int32},System.Tuple{System.Int32,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},System.Int32}})">
+<summary>
+ take function that transforms transition
+ and apply it to every transition in the program
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.RemoveUnreachableLocations">
+<summary>
+ Prune out unreachable locations in the program
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.RemoveTransition(System.Int32)">
+<summary>
+Remove transition with index idx from the program
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.LetConvert(System.Collections.Generic.Dictionary{System.Int32,Microsoft.FSharp.Collections.FSharpSet{System.String}})">
+<summary>
+ If variables are used temporarly in basic blocks and then are killed or not used elsewhere, LetConvert
+ removes them in the obvious way. livevars is assumed to be the set of live variables
+ Our heuristic is based on the idea that more variables are bad, given how constraint-based rank
+ function synthesis and interpolation work.
+ It also special cases instrumentation variables, which might be considered dead, but are still
+ important to us.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.GetTransitiveCFG">
+<summary>
+ Return a mapping from nodes to nodes that are reachable using the CFG edges
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.GetSCCSGs">
+<summary>
+ Returns strongly connected subgraphs in the transitive closure of the program&apos;s
+ control-flow graph.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.GetLabelledNode(System.String)">
+<summary>
+ Returns the node in the program with the given label. If no such node existed, creates a new one.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.GetIsolatedRegions">
+<summary>
+ For each node we return a set of nodes representing the nodes &quot;inside&quot; the loop. As described in
+ &quot;Variance analyses from invariance analyses&quot;, POPL&apos;07
+
+ Return list of pairs (cutpoint, corresponding region)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.GetDominatorsFrom(System.Int32)">
+<summary>
+ Compute dominators tree
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.Clone">
+<summary>
+ Return deep copy of program
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.ChainTransitions(System.Collections.Generic.IEnumerable{System.Int32},System.Boolean)">
+<summary>
+ Chain linear sequences of program transitions, in-place.
+ Returns a map from original transition IDs to the freshly chosen transition IDs.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.AddTransitionMapped(System.String,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},System.String)">
+<summary>
+ add transition n--T--&gt;M with preprocessing (eliminates constants, creates DNF)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.AddTransition(System.Int32,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},System.Int32)">
+<summary>
+ add transition source -- cmds --&gt; target as it is, without any preprocessing
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.Program.AddSymbolConstantInformation">
+<summary>
+ Adds a new initial transition that asserts relative information on symbolized constants (e.g., __const_4 &lt; __const_10)
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Programs.Program">
+<summary>
+ Default size for transitions array
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Programs.Command.Assume">
+<summary>
+ Assume(p,f) represents  &quot;if (f) ignore&quot; at location p
+
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Programs.Command.Assign">
+<summary>
+ Assign(p,v,t) represents v &lt;- t at location p
+
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Programs.Command">
+<summary>
+ Commands datatype
+
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Programs.pos">
+<summary>
+ File position information for commands: (line number, file name)
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.chain_transitions(System.Collections.Generic.IEnumerable{System.Int32},System.Collections.Generic.IEnumerable{System.Tuple{Microsoft.FSharp.Collections.FSharpSet{System.Int32},System.Tuple{System.Int32,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},System.Int32}}})">
+<summary>
+ Merge chains of transitions together.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.const_subst(Microsoft.Research.T2.Programs.Command)">
+<summary>
+ Replace __const variables by the actual constants again
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.collapse_path``1(System.Collections.Generic.IEnumerable{System.Tuple{System.Int32,``0,System.Int32}})">
+<summary>
+ Collapse adjacent commands so that if there were multiple commands
+ in the transition from location x to location y, we end up with a single list of commands
+ for the transition from x to y.
+ Example: [(1, a, 2), (1, b, 2), (2, c, 3), (2, d, 3)] -&gt; [(1, [a, b], 2), (2, [c, d], 3)]
+ Loop edges are not allowed.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.commands_constants(Microsoft.FSharp.Collections.FSharpSet{System.Numerics.BigInteger},Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command})">
+<summary>
+ Replace all constants that are not in range with special variables
+ like __const__42. Return new commands and set of eliminated constants.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.formula_constants(Microsoft.FSharp.Collections.FSharpSet{System.Numerics.BigInteger},Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Replace all constants that are not in range with special variables
+ like __const__42. Return new formula and set of eliminated constants.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.term_constants(Microsoft.FSharp.Collections.FSharpSet{System.Numerics.BigInteger},Microsoft.Research.T2.Term.term)">
+<summary>
+ Replace all constants that are not in &apos;range&apos; with special variables
+ like __const__42. Return new term and set of eliminated constants.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.modified(System.Collections.Generic.IEnumerable{Microsoft.Research.T2.Programs.Command})">
+<summary>
+ Return the set of variables modified by a sequence of commands
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Programs.freevars(System.Collections.Generic.IEnumerable{Microsoft.Research.T2.Programs.Command})">
+<summary>
+ Return free variables in a sequence of commands
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Programs.bound_constants">
+<summary>
+ Constants not abstracted away because they are used as bounds
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Symex.path_to_relation``2(Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},``1}},Microsoft.FSharp.Collections.FSharpSet{System.String})">
+<summary>
+ Vars from &apos;vars&apos; go to prevars and postvars.
+ Prevars and postvars are guaranteed to be distinct.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Symex.path_to_transitions_and_var_map``2(Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},``1}},Microsoft.FSharp.Collections.FSharpMap{System.String,System.Int32})">
+<summary>
+ Convert path to path formula, applying SSA transformation.
+ Var_map contains var to SSA version number.
+ Return pair (&lt;list of transition formulae&gt;, &lt;new var_map&gt;).
+ If variable is not present in var_map, its version is 0.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Symex.slice_path``2(Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},``1}},Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},``1}})">
+<summary>
+ Remove unneeded statements from path pi (assignments to variables that never influence assumes)
+ Second parameter gives commands that are relevant for the &quot;needed&quot; bit, but are not supposed to be cleaned
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Octagon2.Oct.dbm">
+<summary>
+ dbm[2*x_index, 2*y_index] = c means that x-y &lt;= c;
+ 2*x_index+1 corresponds to (-x);
+ dbm[0, 0] &lt; 0 is used as emptiness flag;
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Octagon2.Oct.widen(Microsoft.Research.T2.Octagon2.Oct)">
+<summary>
+ inplace widen;
+ return true if widening changed the octagon
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Octagon2.Oct.var_index(System.String)">
+<summary>
+ return index i for the var (if it&apos;s not present in octagon, add it)
+ (2*i is for v+,
+  2*i+1 is for v-)
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Octagon2.Oct.union(Microsoft.Research.T2.Octagon2.Oct)">
+<summary>
+ inplace union
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Octagon2.Oct.to_formula_filtered(Microsoft.FSharp.Core.FSharpFunc{System.String,System.Boolean})">
+<summary>
+ return conjunction of (linear_termt1 &lt;= linear_term2)
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Octagon2.Oct.size">
+<summary>
+ number of variables (not the size of dbm!)
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Octagon2.Oct.is_empty">
+<summary>
+ Test is precise only immediately after tight_closure.
+ Otherwise false negatives are possible.
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Octagon2.Oct.check">
+<summary>
+ check coherence and some other internal invariants
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Octagon2.Oct.delete_var(System.String)">
+<summary>
+ Projection
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Octagon2.Oct.conservative_assume(Microsoft.Research.T2.Formula.formula)">
+<summary>
+ does not introduce variables that are not already in the octagon;
+ potentially O(n^3) in the size of formula
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Octagon2.Oct.assume(Microsoft.Research.T2.Formula.formula)">
+<summary>
+ may introduce new variables from f to octagon
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Octagon2.Oct.assign(System.String,Microsoft.Research.T2.Term.term)">
+<summary>
+ performs tight closure inside, so it&apos;s expensive;
+ introduces all variables mentioned in term (and of course var)
+ to the octagon if not present already;
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Octagon2.sanity_check">
+<summary>
+ internal Oct invariants checks; somewhat expensive
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Octagon2.floor_div(System.Numerics.BigInteger,System.Numerics.BigInteger)">
+<summary>
+ div that rounds down even for negative x
+
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.IntervalIntDom.Intervals.vars">
+<summary>
+Variables we know something about. Everything that&apos;s not in there has a completely unknown value
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.IntervalIntDom.Intervals.widen(Microsoft.Research.T2.IntervalIntDom.Intervals)">
+<summary>
+The other is always the &quot;newer&quot; value (obtained lated in the program):
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Counterexample.cex">
+<summary>
+ Counterexample to safety property ---&gt; cycle = None.
+ Counterexample to liveness property ---&gt; stem might be equal to None.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Counterexample.print_defect(Microsoft.Research.T2.Parameters.parameters,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Counterexample.cex},System.String)">
+<summary>
+ Print SDV defect tool input in &quot;fname&quot;
+
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.dead">
+<summary>
+ Nodes that were in the system but have now been dead and GC&apos;d
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.garbage">
+<summary>
+ Nodes that have been deemed as garbage but havent been GC&apos;d yet.
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.stack">
+<summary>
+ The priority queue used during DFS.
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.dfs_cnt">
+<summary>
+ Helper to create dfs numbers
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.dfs_map">
+<summary>
+ Node numbers do not quite represent the order that we&apos;ve &quot;visited&quot; them. dfs_map maps each node number to its dfs number
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.fc_candidates">
+<summary>
+ Per-node list of candidates that we should search for when looking for a force cover
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.covering">
+<summary>
+ Induction coverings
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.program_loc_to_abs_nodes">
+<summary>
+ A node n\in representatives(k) if n in the graph maps back to k in the original program.
+ i.e. if n\in representatives(k) then node_map n = k
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.abs_node_to_program_loc">
+<summary>
+ Mapping from nodes in the execution tree to the original program
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.abs_edge_to_program_commands">
+<summary>
+ Mapping from edges in the execution tree to the commands in the original program
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.leaves">
+<summary>
+ Current leaves in the execution tree
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.psi@120">
+<summary>
+ Set of interpolants (understood as conjunction) for each node
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.parent@117">
+<summary>
+ parents in the graph
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.E">
+<summary>
+ Edge relation
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.V">
+<summary>
+ Current nodes in the system
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.cnt">
+<summary>
+ Tree/Graph constructon representing the state of the safety proof procedure.  Back edges
+ in the &quot;covering&quot; relations represent induction checks.  At the end of a successful proof
+ search this graph should represent a valid proof of safety which could be spit out to a
+ theorem prover.  Note that for performance there is A LOT of redundency in this graph. Its
+ RIDDLED with invariants. Fun.
+ Counter tracking how many nodes we have in the system
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.priority">
+<summary>
+ Priority of each node in the original program.  Used to choose which node to take during DFS
+</summary>
+</member>
+<member name="F:Microsoft.Research.T2.Impact.ImpactARG.loc_init">
+<summary>
+ Initial program location
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.try_force_cover(System.Int32)">
+<summary>
+ Apply force_cover procedure as appropriate to the nodes in the graph.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.sq_eq(System.Int32,System.Int32)">
+<summary>
+ x is y, parent of y, grandparent of y, etc.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.sq(System.Int32,System.Int32)">
+<summary>
+ x is parent of y, grandparent of y, etc.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.refine(System.Int32)">
+<summary>
+ If an error path was spurious, refine abstraction and return None.
+ Otherwise, return true (almost) error path.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.pick_vertex">
+<summary>
+ pick uncovered leaf that
+   a) preferably corresponds to error loc
+   b) is earliest in dfs order
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.make_node(System.Int32,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},System.Int32)">
+<summary>
+ Make a new node &quot;w&quot; and add the edge expandedNode---commandsOnEdge---&gt;newNode,
+ where newNode maps to location newNodeLoc from the original program
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.is_covered(System.Int32)">
+<summary>
+ Returns true if the node is covered by an induction covering, or if its parent is.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.get_force_cover_candidates(System.Int32)">
+<summary>
+ This computes candidates for coverings (it uses fc_candidates to cache results
+ -- the set of candidates can never grow, as we are only considering things that were computed before)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.gc">
+<summary>
+ Garbage collection procedure.  Roots of trees become garbage when their interpolant becomes &quot;false&quot;.
+ The procedure for strengthening interpolants checks for unsat and puts nodes in garbage when this
+ condition is met.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.force_cover(System.Int32,System.Int32)">
+<summary>
+ If cover doesnt work, we can try to force it to work by (in a sense) merging paths
+ and finding necessary interpolants along the way
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.find_path_from(System.Int32,System.Int32)">
+<summary>
+ Find the path from node x to node y in the tree, given that x sqeq y
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.find_path(System.Int32)">
+<summary>
+ Find the path from the root of the tree to x
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.expand(System.Int32)">
+<summary>
+ Expand the graph for DFS search
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.dfs(System.Int32)">
+ <summary>
+ Depth first search:  in this procedure we start building the tree in a DFS manner until we hit
+ what we think might be an error.
+ </summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.delete_tree(System.Int32)">
+<summary>
+ Procedure for removing from the graph. I&apos;m being pretty aggressive right now
+ because in early days I was seeing lots of performance bugs due to reasoning about dead
+ nodes.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.db">
+<summary>
+ dump abstraction graph to file for debugging
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.cover(System.Int32,System.Int32)">
+<summary>
+ Try to cover v with w.  That is, v entails w, where v is later in the execution and the cover
+ represents the induction check
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.conjoin_with_psi(System.Int32,Microsoft.Research.T2.Formula.formula)">
+<summary>
+ Strengthen the invariant at a node.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.close_all_ancestors(System.Int32)">
+<summary>
+ Try to find coverings on all of the nodes above v
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.close(System.Int32)">
+<summary>
+ This procedure attempts to find a cover for v.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.check_not_removed(System.Int32)">
+<summary>
+ Sanity check to be used before using a node
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.ancestors(System.Int32)">
+<summary>
+ Compute ancestors
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.Microsoft-Research-T2-SafetyInterface-SafetyProver-ResetFrom(System.Int32)">
+<summary>
+ For incrementality, we sometimes need to delete a subtree within the proof graph
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.Microsoft-Research-T2-SafetyInterface-SafetyProver-ErrorLocationReachable">
+<summary>
+ Return path to loc_err or None if it&apos;s unreachable
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Impact.ImpactARG.Microsoft-Research-T2-SafetyInterface-SafetyProver-DeleteProgramTransition(System.Tuple{System.Int32,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},System.Int32})">
+<summary>
+Delete everything from the graph that used/used some program transition:
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Impact.gc_check">
+<summary>
+ Should we perform some sanity checks to make sure that we&apos;re not using
+ nodes that have been GC&apos;d?
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Impact.do_gc">
+<summary>
+ Should we perform garbage collection on the abstraction graph?
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.MuZ.printSMT2Horn">
+<summary>
+ Debug helper. If true, prints generated clauses on STDOUT.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Safety.prover(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Programs.Program,System.Int32)">
+<summary>
+ Prove that location err is unreachable in p
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.synthesis_poly_lex(Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Relation.relation},System.Int32)">
+<summary>
+ Tries to find a lexicographic polyranking function with rel_to_add inserted into partial_order.
+ Returns None or a list of Lex_Poly_RF.
+ Note partial_order will be empty initially
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.make_eventually_neg_constraints(Microsoft.Research.T2.Rankfunction.template_tree,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Relation.relation},Microsoft.FSharp.Collections.FSharpList{System.Int32})">
+<summary>
+ Makes constraint that says the rf at the head of the tree is Eventually Negative by A in T_bar
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.make_unaffecting_constraint_consts(Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpMap{System.String,Microsoft.Z3.ArithExpr})">
+<summary>
+Generates the constraint that rf is unaffected by rel. rf contains its own constant
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.make_bounded_constraints_consts(Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpMap{System.String,Microsoft.Z3.ArithExpr})">
+<summary>
+ Generates constraint that rf is bounded below by zero on rel. rf contains its own constant
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.synth_maximal_lex_rf(Microsoft.Research.T2.Parameters.parameters,System.Collections.Generic.IEnumerable{System.Tuple{Microsoft.FSharp.Collections.FSharpSet{System.Int32},System.Int32,Microsoft.Research.T2.Relation.relation,System.Int32}},Microsoft.FSharp.Collections.FSharpMap{Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}})">
+<summary>
+ Given a list of transition as (transitionIdx, fromPC, relation, toPC), this tries to find a lexicographic
+ ranking function that maximizes the number of strictly decreasing and bound transitions and ensures that
+ all others are unaffected (corresponding to the DepPair approach). 
+ It returns a list of the used rank functions and bounds, and a set of transitions that were strictly
+ oriented, allowing to remove them from the instrumented program copy.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.synthesis_lex(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Programs.Program,System.Int32,Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Relation.relation})">
+<summary>
+ Tries to find a lexicographic ranking function with rel_to_add inserted into partial_order.
+ Returns None or a list of Lex_RF.
+ Note partial_order will be empty initially
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.synthesis_lex_scc_trans_unaffected(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Programs.Program,Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Relation.relation},System.Int32,Microsoft.FSharp.Collections.FSharpMap{Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}})">
+<summary>
+Try to find a lex rf such that all SCC transitions are unaffected and the cex is decreasing. Then find out what part of the SCC might be deleted.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.synthesis_lex_min_rfs(Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Relation.relation},System.Int32,Microsoft.FSharp.Collections.FSharpMap{Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}})">
+<summary>
+For each possible insertion of rel_to_add to partial_order, try to find a lexicographic solution. Minimize the number of used rfs in that.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.synthesis_lex_max_unaff(Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Relation.relation},System.Int32,Microsoft.FSharp.Collections.FSharpMap{Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}})">
+<summary>
+For each possible insertion of rel_to_add to partial_order, try to find a lexicographic solution. Order results such that solutions with more unaffected relations are preferred
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.synthesis_lex_no_opt(Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Relation.relation},System.Int32,Microsoft.FSharp.Collections.FSharpMap{Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}})">
+<summary>
+For each possible insertion of rel_to_add to partial_order, try to find a lexicographic solution
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.combs``1(System.Int32,Microsoft.FSharp.Collections.FSharpList{``0})">
+<summary>
+Gives a list of all selections of k objects from input_list
+Assumes there are no duplicates in input_list
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.gen_constraints_for_lex_rf_order(Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Relation.relation},System.Int32,Microsoft.FSharp.Collections.FSharpMap{System.Int32,Microsoft.FSharp.Collections.FSharpMap{System.Int32,Microsoft.FSharp.Collections.FSharpMap{System.String,Microsoft.Z3.IntExpr}}},Microsoft.FSharp.Collections.FSharpMap{Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}}},Microsoft.FSharp.Core.FSharpRef{Microsoft.FSharp.Collections.FSharpMap{System.Int32,Microsoft.Z3.IntExpr}})">
+<summary>
+Constructs contraints such that all prior rfs mu.[j] orient rel_i weakly
+and relation i is bounded and strictly decreasing using mu.[i]
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.construct_mu(System.Int32,System.Collections.Generic.IEnumerable{System.Int32},System.Collections.Generic.IEnumerable{System.String})">
+<summary>
+ construct mu_k for every program point k, where every prevar gets a coefficient, for a number of lex ranking functions:
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.synthesis(Microsoft.Research.T2.Relation.relation)">
+<summary>
+ Return pair (rf, bound), where ref is term in prevars, and bound is consant term.
+ RF should be always &gt;= bound.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.extract_rf_from_model``3(Microsoft.FSharp.Collections.FSharpMap{``0,Microsoft.FSharp.Collections.FSharpMap{``1,``2}},Microsoft.Z3.Model)">
+<summary>
+Takes a map mu describing several symbolic ranking functions and a model for the corresponding formula and spits out an instantiated ranking function
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.generate_bounded_constraints_for_rel(System.Int32,Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}},System.Int32,Microsoft.FSharp.Collections.FSharpMap{System.Int32,Microsoft.FSharp.Collections.FSharpMap{System.Int32,Microsoft.FSharp.Collections.FSharpMap{System.String,Microsoft.Z3.IntExpr}}})">
+<summary>
+ Takes a relation between program points k, k&apos; and generates constraints that it is bounded when using the (symbolic) rank function for k that is stored in mu.[lex_pos].
+ Returns a pair of the variable that is equivalent to boundedness in a model and the constraints
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.generate_weakly_decreasing_constraints_for_rel(System.Int32,Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpMap{System.String,System.Numerics.BigInteger}},System.Int32,System.Int32,Microsoft.FSharp.Collections.FSharpMap{System.Int32,Microsoft.FSharp.Collections.FSharpMap{System.Int32,Microsoft.FSharp.Collections.FSharpMap{System.String,Microsoft.Z3.IntExpr}}})">
+<summary>
+ Takes a relation between program points k, k&apos; and generates constraints that it is not increasing when using the (symbolic) rank functions for k, k&apos; that are stored in mu.[lex_pos]
+ Returns a pair of the variable that holds the decrease (constrained to be non-negative -- for strict decrease, ask for it to be positive) and the constraints.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Rankfunction.make_decr_and_bnded_constraints(Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpMap{System.String,Microsoft.Z3.ArithExpr},Microsoft.FSharp.Collections.FSharpMap{System.String,Microsoft.Z3.ArithExpr},Microsoft.Z3.ArithExpr)">
+<summary>
+ Generates the constraints to find a linear rf for rel
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.cp_polyrank">
+<summary>
+a map from cp to whether we&apos;re currently finding polyranking fns for this cutpoint. Starts as false, then switches to true as necessary
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.cp_iter_guard">
+<summary>
+a map from cp to the index of the transition that contains the guard
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.cp_current_iter">
+<summary>
+a map from cp to the current number of iterations we&apos;re unrolling. Note it starts off at 2 for all cps.
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.cp_unrolling">
+<summary>
+a map from cp to a bool describing whether we are currently doing the &quot;unrolling&quot; improvement
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.partial_orders_init_cond">
+<summary>
+map from cp to map.
+the map is from counters to current partial order for that counter
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.current_counter">
+<summary>
+is the counter identity of the path just found
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.cp_rf_init_cond">
+<summary>
+a map from each cutpoint to a map.
+the map is from a counter to the index location of the counter&apos;s lex checkers
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.cp_init_cond">
+<summary>
+a map from each cp to a bool describing whether we are currently doing the &quot;detect initial condition&quot; improvement
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.cp_attempt_lex">
+<summary>
+a map from each cp to a bool describing whether we are currently doing the lexicographic method (true) or disjunctive method (false)
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.past_lex_options">
+<summary>
+a map from each cp to any lexicographic solutions we found in the past, but did not instrument. Last in first out
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Instrumentation.LexicographicInfo.partial_orders">
+<summary>
+a map from each cp to the order of relations being used currently
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.mergeProgramAndProperty(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Programs.Program,Microsoft.Research.T2.CTL.CTL_Formula,System.Boolean,Microsoft.Research.T2.Utils.SetDictionary{Microsoft.Research.T2.CTL.CTL_Formula,System.Tuple{System.Int32,Microsoft.Research.T2.Formula.formula}},Microsoft.FSharp.Core.FSharpOption{System.Tuple{Microsoft.Research.T2.Formula.formula,Microsoft.Research.T2.Formula.formula}},System.Boolean,System.Boolean)">
+<summary>
+ Returns the programs that encodes both input program and the checked property,
+ the error location and a map from cutpoints to the first transition leading to
+ the error location (this is where the rfs are later added in)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.add_fairness_check_transititions``1(Microsoft.Research.T2.Programs.Program,Microsoft.FSharp.Core.FSharpOption{System.Tuple{System.Tuple{Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command}},Microsoft.FSharp.Collections.FSharpList{Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command}}}},``0,System.String,System.Int32,System.Int32,System.Int32)">
+<summary>
+ Add transitions that ensure the fairness constraint (which may well be None) to the program p, between nodes ret_true_node/ret_false_node and end_node_of_subproperty.
+
+ This also takes care of assigning the correct value to ret_var, based on whether we are coming from ret_true_node/ret_false_node.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.add_subproperty_conditions``1(Microsoft.Research.T2.Programs.Program,Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.Research.T2.Formula.formula}},``0,System.Boolean,System.Int32,System.Int32,System.Int32)">
+<summary>
+ Extracts the precondition for the current subproperty at cutpoint cp, and adds in new checkers for this subproperty between
+ start_node_for_subproperty and ret_true_node (for cases where it holds)/ret_false_node (for cases where it does not hold)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.var_copy_commands``1(Microsoft.Research.T2.Programs.Program,``0)">
+<summary>
+Make new copied variables and assume commands to store a copy
+Returns a list of assignments of old vars to new (renamed) vars.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.can_unroll(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Instrumentation.LexicographicInfo,System.Int32)">
+<summary>
+Return true if we can use unrolling technique:
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.unrolling_trans(System.Int32,System.Collections.Generic.Dictionary{System.Int32,Microsoft.FSharp.Collections.FSharpList{System.Int32}},Microsoft.Research.T2.Programs.Program,System.Boolean)">
+<summary>
+Performs that transformation that counts how many times we&apos;ve looped through cp, and only checks for more than some number of iterations
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.do_init_cond(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Instrumentation.LexicographicInfo,System.Int32,Microsoft.Research.T2.Programs.Program,System.Collections.Generic.Dictionary{System.Int32,Microsoft.FSharp.Collections.FSharpList{System.Int32}},Microsoft.Research.T2.SafetyInterface.SafetyProver)">
+<summary>
+Switches to detecting initial condition for failure_cp
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.init_cond_trans(Microsoft.Research.T2.Parameters.parameters,System.Int32,Microsoft.Research.T2.Programs.Program,System.Collections.Generic.Dictionary{System.Int32,Microsoft.FSharp.Collections.FSharpList{System.Int32}})">
+<summary>
+Performs the transformation that detects the initial condition at cp and separates the checkers according to the initial condition
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.switch_to_polyrank(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Instrumentation.LexicographicInfo,System.Int32,System.Collections.Generic.Dictionary{System.Int32,Microsoft.FSharp.Collections.FSharpList{System.Int32}},Microsoft.Research.T2.Programs.Program,Microsoft.Research.T2.SafetyInterface.SafetyProver)">
+<summary>
+Deletes the old lex checkers for failure_cp and get ready to start finding lex polyranking functions
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.switch_to_past_lex_RF(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Instrumentation.LexicographicInfo,System.Int32)">
+<summary>
+Fetches the past lex option at the head of the queue for failure_cp
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.replace_lex_rf_checkers(Microsoft.Research.T2.Programs.Program,Microsoft.FSharp.Collections.FSharpList{System.Int32},System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula}})">
+<summary>
+Replaces a list of old lexicographic checkers by a new list
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.delete_lex_checkers(Microsoft.FSharp.Collections.FSharpList{System.Int32},Microsoft.Research.T2.Programs.Program)">
+<summary>
+Takes in the indexes of the transitions that are lexicographic checkers, deletes them, and returns start and end node of the old check transition (so that you can stuff new checkers in there)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.contains_copied_gets_1``1(``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command})">
+<summary>
+Returns true if cmds contains copied_cp:=1
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Instrumentation.contains_copied_lt_1``1(``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command})">
+<summary>
+Returns true if cmds contains assume(copied_cp&lt;1)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.find_failing_cp``2(Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.Research.T2.Programs.Command,``1}})">
+<summary>
+Find the cutpoint where we failed, by walking the path backwards until we reach the the check &quot;__copied_k &gt;= 1&quot;. k is then the failing cutpoint
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.refine_cycle``3(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Programs.Program,System.Int32,Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.FSharp.Collections.FSharpList{``1},``2}},Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String},Microsoft.Research.T2.Instrumentation.LexicographicInfo)">
+<summary>
+ Return the appropriate type of Refinement or none
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.find_disj_RF(Microsoft.Research.T2.Parameters.parameters,System.Int32,Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String})">
+<summary>
+Tries to find a WF for cycle_rel
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.find_lex_poly_RF(Microsoft.Research.T2.Parameters.parameters,System.Int32,Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String},Microsoft.Research.T2.Instrumentation.LexicographicInfo)">
+<summary>
+Tries to find a Lex_Poly_RF
+</summary>
+</member>
+<member name="P:Microsoft.Research.T2.Lasso.tree_counter">
+<summary>
+ counter to name the poly tree debug output dot files uniquely
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.make_poly_checkers(Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Rankfunction.poly_tree},Microsoft.FSharp.Collections.FSharpMap{System.String,System.String})">
+<summary>
+Convert a lexicographic polyranking function (i.e. list of trees) and give out the formulae to be put in the checkers in DNF
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.find_lex_RF_init_cond(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Programs.Program,System.Int32,Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String},Microsoft.Research.T2.Instrumentation.LexicographicInfo)">
+<summary>
+Tries to find a Lex_WF, when we&apos;re doing the init_cond improvement
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.find_lex_RF(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Programs.Program,System.Int32,Microsoft.Research.T2.Relation.relation,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String},Microsoft.Research.T2.Instrumentation.LexicographicInfo)">
+<summary>
+Tries to find a Lex_WF or Program_Simplification
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.store_lex_options(System.Int32,Microsoft.FSharp.Collections.FSharpList{System.Tuple{System.Tuple{Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula},Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula},Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula}},Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Relation.relation}}},Microsoft.Research.T2.Instrumentation.LexicographicInfo)">
+<summary>
+Takes in some lexicographic solutions and puts them in past_lex_options in case we want to use them later
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.neg_fn_to_arg(Microsoft.Research.T2.Term.term,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String})">
+<summary>
+Converts a rf to the &quot;negative&quot; formula
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.lim_incr_to_arg(Microsoft.Research.T2.Term.term,Microsoft.Research.T2.Term.term,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String})">
+<summary>
+Converts a rf and aux_rf to the &quot;rf increases by no more than aux_rf&quot; formula
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.unaff_fn_to_arg(Microsoft.Research.T2.Term.term,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String})">
+<summary>
+Converts a rf to the &quot;unaffected&quot; formula
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.bounded_fn_to_arg(Microsoft.Research.T2.Term.term,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String})">
+<summary>
+Converts a rf to the &quot;bounded below by zero&quot; formula
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.rankfunction_to_argument(Microsoft.Research.T2.Term.term,Microsoft.Research.T2.Term.term,Microsoft.FSharp.Collections.FSharpMap{System.String,System.String})">
+<summary>
+Converts the rf and bound to the &quot;decreasing&quot; and &quot;bounded&quot; formulae
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.lex_rankfunction_to_argument(Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Term.term},Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Term.term},Microsoft.FSharp.Collections.FSharpMap{System.String,System.String})">
+<summary>
+Converts the RF and bound lists to the triple formula lists
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Lasso.make_lex_formula(Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula},Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula},Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Formula.formula})">
+<summary>
+Takes the three formulae lists of a lex RF and gives a single formula expressing the lex RF
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.RecurrentSets.synthesize``2(Microsoft.Research.T2.Parameters.parameters,Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},``1}},Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},``1}},System.Boolean)">
+<summary>
+ Return formula characterizing recurrent set (at the beginning of the cycle)
+ Optimistically calling this &quot;synthesize&quot; assuming that someday it will be
+ based on some smart technology
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.RecurrentSets.separate_conditions_and_assignments(Microsoft.FSharp.Collections.FSharpSet{System.String},System.Collections.Generic.IEnumerable{Microsoft.Research.T2.Formula.formula})">
+<summary>
+ Following Sect. 4.2 of &quot;Automated Detection of Non-Termination and NullPointerExceptions for Java Bytecode&quot;
+
+ Obtain loop condition from cycle path in terms 
+ of variables at the beginning of the cycle
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.RecurrentSets.recurrent_state``2(Microsoft.Research.T2.Parameters.parameters,System.Collections.Generic.IEnumerable{System.String},Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},``1}},Microsoft.FSharp.Collections.FSharpList{System.Tuple{``0,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},``1}},System.Int32)">
+<summary>
+ Find state that repeats itself after &lt;count&gt; iterations of &lt;cycle&gt;.
+ Return disjunction of conjunctions, characterizing state before &lt;cycle&gt;,
+ after one iteration of &lt;cycle&gt;, after two iterations of &lt;cycle&gt; etc.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Termination.bottomUp``1(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Programs.Program,Microsoft.Research.T2.CTL.CTL_Formula,System.Boolean,System.Int32,Microsoft.FSharp.Core.FSharpOption{System.Tuple{Microsoft.Research.T2.Formula.formula,Microsoft.Research.T2.Formula.formula}},Microsoft.Research.T2.Utils.SetDictionary{Microsoft.Research.T2.CTL.CTL_Formula,System.Tuple{System.Int32,Microsoft.Research.T2.Formula.formula}})">
+<summary>
+ Proves a CTL property, innermost formulas first, using preconditions.
+ The parameter propertyMap represents a list with the first element being the nested CTL property
+ and the second being a seq of locations/pre-conditions pairs.
+ Note that this map is mutated throughout the proof process.
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Termination.insertForRerun(Microsoft.Research.T2.Parameters.parameters,Microsoft.FSharp.Core.FSharpOption{System.Tuple{System.Int32,Microsoft.Research.T2.Formula.formula}},System.Boolean,Microsoft.Research.T2.CTL.CTL_Formula,System.Int32,Microsoft.Research.T2.Programs.Program,System.Collections.Generic.Dictionary{System.Int32,System.Int32},Microsoft.FSharp.Collections.FSharpMap{System.Int32,System.Int32},System.Boolean,Microsoft.FSharp.Collections.FSharpMap{System.Int32,Microsoft.FSharp.Collections.FSharpSet{System.Int32}},Microsoft.Research.T2.SafetyInterface.SafetyProver,Microsoft.FSharp.Collections.FSharpSet{System.Int32},Microsoft.FSharp.Collections.FSharpList{System.Tuple{System.Int32,Microsoft.Research.T2.Programs.Command,System.Int32}},Microsoft.Research.T2.Utils.SetDictionary{Microsoft.Research.T2.CTL.CTL_Formula,System.Tuple{System.Int32,Microsoft.Research.T2.Formula.formula}},Microsoft.FSharp.Core.FSharpRef{Microsoft.FSharp.Collections.FSharpMap{System.Int32,System.Tuple{System.Int32,System.Int32}}},Microsoft.FSharp.Core.FSharpRef{Microsoft.FSharp.Collections.FSharpSet{System.Int32}},Microsoft.Research.T2.Programs.Program)">
+<summary>
+ Prepare the program for another prover run, slowly enumerating all different pre-conditions
+ (which are either conjunctive/disjunctive, depending on whether we are doing universal/existential)
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Termination.fold_by_loc(Microsoft.FSharp.Core.FSharpFunc{System.Tuple{Microsoft.Research.T2.Formula.formula,Microsoft.Research.T2.Formula.formula},Microsoft.Research.T2.Formula.formula},Microsoft.FSharp.Collections.FSharpSet{System.Tuple{System.Int32,Microsoft.Research.T2.Formula.formula}})">
+<summary>
+Takes a loc-&gt;formula list as second arg, groups the formulas by loc and connects them using the first argument
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Termination.simplify_scc(Microsoft.Research.T2.Parameters.parameters,Microsoft.Research.T2.Programs.Program,System.Boolean,System.Collections.Generic.Dictionary{System.Int32,System.Int32},Microsoft.FSharp.Collections.FSharpSet{System.Int32},Microsoft.FSharp.Collections.FSharpSet{System.Int32})">
+<summary>
+ Tries to remove as many transitions as possible from a SCC. Returns a list of used rank functions/bounds.
+</summary>
+</member>
+<member name="T:Microsoft.Research.T2.Absparse.parsedLoc">
+<summary>
+ Location in a T2 file (either numerical or a name)
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Absparse.prodIdxToNonTerminal(System.Int32)">
+<summary>
+ This function maps production indexes returned in syntax errors to strings representing the non terminal that would be produced by that production
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Input.load_t2(Microsoft.Research.T2.Parameters.parameters,System.Boolean,System.String)">
+<summary>
+ Load a program in T2 format
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Input.simplify_chains(Microsoft.FSharp.Collections.FSharpList{System.Tuple{System.String,Microsoft.FSharp.Collections.FSharpList{Microsoft.Research.T2.Programs.Command},System.String}},Microsoft.FSharp.Collections.FSharpSet{System.String})">
+<summary>
+ replace edges x-&gt;y-&gt;z with x-&gt;z if there are
+ no other edges from/to y.
+
+</summary>
+</member>
+<member name="M:Microsoft.Research.T2.Input.parse(System.String)">
+<summary>
+ Parse from a file, returning a program
+
+</summary>
+</member>
+</members>
+</doc>

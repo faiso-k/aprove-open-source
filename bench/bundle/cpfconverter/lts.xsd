@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:simpleType name="locationId">
+    <xs:annotation>
+      <xs:documentation>
+        This is just a typedef.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+  <xs:simpleType name="variableId">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+  <xs:simpleType name="transitionId">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+  <xs:group name="transition">
+    <xs:choice>
+      <xs:element name="transitionId" type="transitionId"/>
+      <xs:element name="transitionDuplicate" type="transitionId"/>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="transition">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group ref="transition"/>
+        <xs:element name="source" type="location"/>
+        <xs:element name="target" type="location"/>
+        <xs:element name="formula" type="formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="location">
+    <xs:annotation>
+      <xs:documentation>location to be used in program graphs</xs:documentation>
+    </xs:annotation>
+    <xs:choice>
+      <xs:element name="locationId" type="locationId"/>
+      <xs:element name="locationDuplicate" type="locationId"/>
+    </xs:choice>
+  </xs:group>
+  <xs:complexType name="location">
+    <xs:group ref="location"/>
+  </xs:complexType>
+  <xs:group name="variableName">
+    <xs:choice>
+      <xs:element name="variableId" type="variableId"/>
+    </xs:choice>
+  </xs:group>
+  <xs:group name="variable">
+    <xs:choice>
+      <xs:group ref="variableName"/>
+      <xs:element name="post">
+        <xs:complexType>
+          <xs:group ref="variableName"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+  <xs:group name="expression">
+    <xs:choice>
+      <xs:group ref="variable"/>
+      <xs:element name="constant" type="xs:integer"/>
+      <xs:element name="sum">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:group ref="expression" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="product">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:group ref="expression" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+  <xs:complexType name="expression">
+    <xs:group ref="expression"/>
+  </xs:complexType>
+  <xs:group name="formula">
+    <xs:choice>
+      <xs:element name="leq">
+        <xs:complexType>
+          <xs:group minOccurs="2" maxOccurs="2" ref="expression"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="less">
+        <xs:complexType>
+          <xs:group minOccurs="2" maxOccurs="2" ref="expression"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="eq">
+        <xs:complexType>
+          <xs:group minOccurs="2" maxOccurs="2" ref="expression"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="conjunction">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:group maxOccurs="unbounded" minOccurs="0" ref="formula"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="disjunction">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:group maxOccurs="unbounded" minOccurs="0" ref="formula"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+  <xs:complexType name="formula">
+    <xs:group ref="formula"/>
+  </xs:complexType>
+  <xs:complexType name="lts">
+    <xs:sequence>
+      <xs:element name="initial">
+        <xs:complexType>
+          <xs:group ref="location" maxOccurs="unbounded"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element ref="transition" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ltsSafetyInput">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="lts" type="lts"/>
+        <xs:element name="error" type="location" maxOccurs="unbounded" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="impactNodeId">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+  <xs:element name="invariants">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="invariant" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="location" type="location"/>
+              <xs:element name="formula" type="formula"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="invariantProof">
+    <xs:choice>
+      <xs:element name="impact">
+        <xs:annotation>
+          <xs:documentation>
+            An IMPACT consists of an initial node corresponding to the initial location, and a list of nodes each with an invariant and corresponding location.
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="initial" type="impactNodeId" minOccurs="0"/>
+            <xs:element name="nodes">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="node" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="initial" minOccurs="0"/>
+                        <xs:element name="nodeId" type="impactNodeId"/>
+                        <xs:element name="invariant" type="formula"/>
+                        <xs:element name="location" type="location"/>
+                        <xs:choice>
+                          <xs:element name="children">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="child" maxOccurs="unbounded" minOccurs="0">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:group ref="transition"/>
+                                      <xs:element name="nodeId" type="impactNodeId"/>
+                                      <xs:element name="hints" type="hint" minOccurs="0"/>
+                                    </xs:sequence>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="coverEdge">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="nodeId" type="impactNodeId"/>
+                                <xs:element name="hints" type="hint" minOccurs="0"/>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:choice>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+  <xs:group name="ltsSafetyProof">
+    <xs:choice>
+      <xs:element name="safetyViaInvariants">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="invariants"/>
+            <xs:group ref="invariantProof"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+  <xs:group name="formulaPosition">
+    <xs:choice>
+      <xs:element name="conclusion"/>
+      <xs:element name="assertion"/>
+      <xs:element name="transition"/>
+    </xs:choice>
+  </xs:group>
+  <xs:group name="hint">
+    <xs:choice>
+      <xs:element name="auto"/>
+   </xs:choice>
+  </xs:group>
+  <xs:complexType name="hint">
+    <xs:group ref="hint"/>
+  </xs:complexType>
+  <xs:group name="cooperationTerminationProof">
+    <xs:choice>
+      <xs:element name="trivial"/>
+      <xs:element name="transitionRemoval">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="rankingFunctions">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="rankingFunction" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="location" type="location"/>
+                        <xs:element name="expression">
+                          <xs:complexType>
+                            <xs:group ref="expression" maxOccurs="unbounded">
+                              <xs:annotation>
+                                <xs:documentation>Multiple expressions mean a lexicographic ranking function.</xs:documentation>
+                              </xs:annotation>
+                            </xs:group>
+                          </xs:complexType>
+                        </xs:element>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="bound">
+              <xs:complexType>
+                <xs:group ref="expression" maxOccurs="unbounded">
+                  <xs:annotation>
+                    <xs:documentation>
+                      Lexicographic ranking functions should be given a bound for each component.
+                    </xs:documentation>
+                  </xs:annotation>
+                </xs:group>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="remove">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:group ref="transition" maxOccurs="unbounded"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="hints" minOccurs="0">
+              <xs:complexType>
+                <xs:choice maxOccurs="unbounded" minOccurs="0">
+                  <xs:element name="hint">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:group ref="transition"/>
+                        <xs:group ref="hint"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:choice>
+              </xs:complexType>
+            </xs:element>
+            <xs:group ref="cooperationTerminationProof"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="newInvariants">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="invariants"/>
+            <xs:group ref="invariantProof"/>
+            <xs:group ref="cooperationTerminationProof"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="locationAddition">
+        <xs:annotation>
+          <xs:documentation>Create a new location.
+The argument is a skip transition from new -&gt; old
+
+The effect is that all sharp transitions 
+  (l -phi-&gt; old) 
+will be replaced by
+  (l -phi-&gt; new) 
+and the skip transition is added.
+
+Of, if the argument is a skip transition from old -&gt; new, then all sharp transitions
+  (old -phi-&gt; l) 
+will be replaced by 
+  (new -phi-&gt; l) 
+and the skip transition is added.
+  </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="transition"/>
+            <xs:group ref="cooperationTerminationProof"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="freshVariableAddition">
+        <xs:annotation>
+          <xs:documentation>Fresh Variable Addition:
+introduces a new variable x of given type into the transitions.
+For each (non-skip) transition one can specify in an additional 
+formula how x should be updated, as long as it is non-conflicting.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:group ref="variableName"/>
+            <xs:choice>
+              <xs:element name="bool"/>
+              <xs:element name="int"/>
+            </xs:choice>
+            <xs:element name="additionalFormulas">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element maxOccurs="unbounded" minOccurs="0" name="additionalFormula">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:group ref="transition"/>
+                        <xs:group ref="formula"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:group ref="cooperationTerminationProof"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="sccDecomposition">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="sccWithProof">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="scc">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:group maxOccurs="unbounded" ref="location"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:group ref="cooperationTerminationProof"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="cutTransitionSplit">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="cutTransitionsWithProof">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="cutTransitions">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:group ref="transition" maxOccurs="unbounded"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:group ref="cooperationTerminationProof"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+  <xs:group name="ltsTerminationProof">
+    <xs:choice>
+      <xs:element name="trivial"/>
+      <xs:element name="switchToCooperationTermination">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="cutPoints">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="cutPoint" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:group ref="location"/>
+                        <xs:element name="skipId" type="transitionId"/>
+                        <xs:element name="skipFormula" type="formula" minOccurs="0"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:group ref="cooperationTerminationProof"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="newInvariants">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="invariants"/>
+            <xs:group ref="invariantProof"/>
+            <xs:group ref="ltsTerminationProof"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+</xs:schema>

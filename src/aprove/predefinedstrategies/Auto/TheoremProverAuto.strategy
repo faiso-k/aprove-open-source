@@ -1,0 +1,1 @@
+main = Repeat(0,*,First(SymbolicEvaluation, Solve(ConditionalEvaluation:main), Solve(InverseSubstitution:main), Solve(InverseFunctionality:main), Solve(CaseAnalysis:main) , INDFMLHeuristic[Techniques = Both]))

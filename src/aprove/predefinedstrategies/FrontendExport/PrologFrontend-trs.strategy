@@ -1,0 +1,5 @@
+main = RunDefaultStrategyForObligation
+
+plterm = PrologToTRS[ShowTree = False, ExportTree = False, TreeLimit = 50, MinExSteps = 1, GeneralizationDepth = 7, GeneralizationPosition = 2, MaxBranchingFactor = 3, NoGroundLoss = True]; qtrs
+
+qtrs = QTRSDependencyPairs;TRSDumpProcessor

@@ -1,0 +1,746 @@
+<project name="AProVE" default="dist" basedir=".">
+	<property name="package" value="aprove" />
+
+	<!-- For builds having another main class, create a custom target -->
+	<property name="mainClass" value="aprove.Main" />
+
+	<property name="depend_cache" value=".depend_cache" />
+	<property name="build" value="build" />
+	<property name="src" value="src" />
+	<property name="gen" value="gen" />
+	<property name="res.classes" value="res-classes" />
+	<property name="dist" value="dist" />
+	<property name="lib" value="lib" />
+	<property name="antlr" value="${lib}/antlr-3.5.2.jar" />
+
+	<path id="modulepath">
+		<pathelement location="${lib}/sat4j.jar" />
+		<pathelement location="${lib}/smtinterpol.jar" />
+		<pathelement location="${lib}/java-getopt-1.0.14.jar" />
+		<pathelement location="${lib}/antlr-3.5.2.jar" />
+		<pathelement location="${lib}/commons-codec-1.7.jar" />
+		<pathelement location="${lib}/commons-math3-3.0.jar" />
+		<pathelement location="${lib}/jdom-1.1.3.jar" />
+		<pathelement location="${lib}/com.microsoft.z3.jar" />
+		<pathelement location="${lib}/json-b0191a6acf.jar" />
+		<!-- compile-time only: provides org.osgi.core for module-info.java, not bundled into aprove.jar -->
+		<pathelement location="${lib}/org.osgi.core-6.0.0.jar" />
+		<pathelement location="${lib}/junit-4.12.jar" />
+		<pathelement location="${lib}/mockito-core-1.10.19.jar" />
+		<!-- Dependency of both JUnit and Mockito -->
+		<pathelement location="${lib}/hamcrest-core-1.3.jar" />
+		<!-- Dependency of Mockito -->
+		<pathelement location="${lib}/objenesis-2.1.jar" />
+	</path>
+
+
+<!-- ===================================== shortcuts -->
+
+	<target name="all" depends="dist" />
+
+	<!-- run this after the repositories were checked out -->
+	<target name="initialSetup" depends="settings,generateSources" />
+
+	<!-- run this to generate the gen folder -->
+	<target name="generateSources" depends="generateGrammars,generateHaskellPrelude" />
+
+	<!-- run this to cleanly regenerate the grammars, for example after switching a branch -->
+	<target name="regenerateGrammars" depends="cleanGrammars,generateGrammars" />
+
+	<target name="cleanAll" depends="cleanBuild,cleanGenerated,cleanDist" />
+
+	<!-- ===================================== alternative main classes -->
+
+	<target name="color">
+		<antcall target="dist">
+			<param name="mainClass" value="aprove.CommandLineInterface.RunmeRainbow" />
+		</antcall>
+	</target>
+
+	<target name="a3pat">
+		<antcall target="dist">
+			<param name="mainClass" value="aprove.CommandLineInterface.RunmeA3PAT" />
+		</antcall>
+	</target>
+
+	<target name="ceta">
+		<antcall target="dist">
+			<param name="mainClass" value="aprove.CommandLineInterface.RunmeCeTA" />
+		</antcall>
+	</target>
+
+	<target name="competition">
+		<antcall target="dist">
+			<param name="mainClass" value="aprove.CommandLineInterface.Runme" />
+		</antcall>
+	</target>
+
+	<!-- Creates the disjoint union of 0 or more ITRSs. -->
+	<target name="itrsmerger">
+		<antcall target="dist">
+			<param name="mainClass" value="aprove.verification.dpframework.IDPProblem.utility.ITRSMerger" />
+		</antcall>
+	</target>
+
+	<!-- ===================================== build -->
+
+	<target name="build" depends="compile,generateHaskellPrelude,copyHaskellPrelude" />
+
+	<!-- compile -->
+	<target name="compile" depends="init,settings,generateGrammars,copyGrammars,copyResources">
+		<depend srcdir="${src}:${gen}" destdir="${build}" cache="${depend_cache}" />
+		<javac destdir="${build}" includes="${package}/**/*.java,immutables/**/*.java" excludes="${package}/Testing/**/*.java" debug="on" deprecation="off" memoryMaximumSize="784m" fork="true" encoding="ISO-8859-1" tempdir="/tmp" optimize="on" includeantruntime="true">
+			<src path="${src}" />
+			<src path="${gen}" />
+			<modulepath>
+				<path refid="modulepath" />
+			</modulepath>
+		</javac>
+	</target>
+
+	<target name="init">
+		<tstamp />
+		<mkdir dir="${build}" />
+	</target>
+
+	<target name="settings" depends="check_settings" unless="settings.exists">
+		<copy file="src/aprove/GlobalSettings.template" tofile="src/aprove/GlobalSettings.java" />
+	</target>
+	<target name="check_settings">
+		<available property="settings.exists" file="src/aprove/GlobalSettings.java" />
+	</target>
+
+
+	<!-- copy to build directory -->
+	<target name="copyGrammars">
+		<copy todir="${grammars.build}">
+			<fileset dir="${grammars.gen}">
+				<include name="**/*.dat" />
+			</fileset>
+		</copy>
+	</target>
+	<target name="copyHaskellPrelude">
+		<copy todir="${haskellPrelude.build}">
+			<fileset dir="${haskellPrelude.gen}">
+				<include name="**/*.hs" />
+			</fileset>
+		</copy>
+	</target>
+	<target name="copyResources">
+		<copy todir="${build}">
+			<fileset dir="${src}">
+				<include name="**/*.properties" />
+				<include name="**/*.hs" />
+				<include name="**/*.xsl" />
+				<include name="**/*.dtd" />
+				<include name="**/*.xsd" />
+				<include name="**/*.strategy" />
+				<include name="**/*.jpg" />
+				<include name="**/*.dot" />
+				<include name="**/*.gif" />
+				<include name="**/*.bib" />
+				<include name="**/*.model" />
+			</fileset>
+		</copy>
+		<copy todir="${build}">
+			<fileset dir="${res.classes}">
+				<include name="**/*.class" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- ===================================== clean -->
+
+	<target name="cleanBuild">
+		<delete dir="${build}" />
+	</target>
+
+	<target name="cleanGrammars">
+		<delete dir="${grammars.gen}" />
+	</target>
+
+	<target name="cleanHaskellPrelude">
+		<delete dir="${haskellPrelude.gen}" />
+	</target>
+
+	<target name="cleanGenerated" depends="cleanGrammars,cleanHaskellPrelude">
+		<delete dir="${gen}" />
+		<mkdir dir="${gen}" />
+	</target>
+
+	<target name="cleanDist">
+		<delete dir="${dist}" />
+	</target>
+
+	<!-- ===================================== dev tools -->
+
+
+
+	<!-- ===================================== dist -->
+
+	<target name="releasedist" depends="dist">
+		<zip destfile="${dist}/lib/aprove-release.zip">
+			<fileset file="dist/lib/aprove.jar" />
+			<fileset dir="licenses/" />
+		</zip>
+	</target>
+
+	<target name="dist" depends="build">
+		<antcall target="dist.unjar" />
+		<antcall target="dist.versioninfo" />
+		<jar jarfile="${dist}/lib/${package}.jar" basedir="${build}" includes="**" update="false">
+			<fileset dir="${dist}/lib" includes="gnu/**" />
+			<fileset dir="${dist}/lib" includes="org/**" />
+			<fileset dir="${dist}/lib" includes="com/**" />
+			<fileset dir="${dist}/lib" includes="de/**" />
+			<fileset dir="${dist}/lib" includes="java_cup/**" />
+			<manifest>
+				<attribute name="Main-Class" value="${mainClass}" />
+			</manifest>
+		</jar>
+		<antcall target="dist.clean" />
+	</target>
+
+	<!-- for use by the dist target -->
+	<target name="dist.unjar">
+		<mkdir dir="${dist}/lib" />
+		<unjar src="${lib}/sat4j.jar" dest="${dist}/lib" />
+		<unjar src="${lib}/smtinterpol.jar" dest="${dist}/lib" />
+		<unjar src="${lib}/java-getopt-1.0.14.jar" dest="${dist}/lib" />
+		<unjar src="${lib}/antlr-3.5.2.jar" dest="${dist}/lib/" />
+		<unjar src="${lib}/commons-codec-1.7.jar" dest="${dist}/lib/" />
+                <unjar src="${lib}/commons-math3-3.0.jar" dest="${dist}/lib/" />
+		<unjar src="${lib}/jdom-1.1.3.jar" dest="${dist}/lib" />
+		<unjar src="${lib}/com.microsoft.z3.jar" dest="${dist}/lib" />
+		<unjar src="${lib}/json-b0191a6acf.jar" dest="${dist}/lib" />
+	</target>
+
+	<!-- for use by the dist target -->
+	<!-- Adds a file for git version information  -->
+	<target name="dist.versioninfo">
+		<delete file="${build}/VERSION" quiet="true" />
+		<echo>Generating new VERSION file</echo>
+		<exec executable="./lib/GIT-VERSION-GEN" failonerror="true" failifexecutionfails="false">
+			<arg value="${build}/VERSION" />
+		</exec>
+	</target>
+
+	<!-- for use by the dist target -->
+	<target name="dist.clean">
+		<mkdir dir="${dist}/deleteme" />
+		<move file="${dist}/lib/gnu" tofile="${dist}/deleteme/lib/gnu" />
+		<move file="${dist}/lib/org" tofile="${dist}/deleteme/lib/org" />
+		<move file="${dist}/lib/com" tofile="${dist}/deleteme/lib/com" />
+		<move file="${dist}/lib/de" tofile="${dist}/deleteme/lib/de" />
+		<move file="${dist}/lib/java_cup" tofile="${dist}/deleteme/lib/java_cup" />
+		<exec executable="rm" spawn="true">
+			<arg line="-r ${dist}/deleteme/" />
+		</exec>
+		<delete dir="${dist}/lib/META-INF" />
+	</target>
+
+	<!-- The same as dist, but uses fastjar instead of jar. -->
+	<target name="fastdist" depends="build">
+		<antcall target="dist.unjar" />
+		<antcall target="dist.versioninfo" />
+		<exec executable="fastjar">
+			<arg value="-cf" />
+			<arg value="${dist}/lib/${package}.jar" />
+			<arg line="-m ${src}/MANIFEST.MF" />
+			<arg line="-C ${build} ." />
+			<arg line="-C ${dist}/lib gnu" />
+			<arg line="-C ${dist}/lib org" />
+			<arg line="-C ${dist}/lib com" />
+			<arg line="-C ${dist}/lib de" />
+			<arg line="-C ${dist}/lib java_cup" />
+		</exec>
+		<antcall target="dist.clean" />
+	</target>
+
+	<target name="multi_server" depends="build">
+		<antcall target="dist.unjar" />
+		<jar jarfile="${dist}/lib/${package}MultiServer.jar" basedir="${build}" includes="aprove/**" update="false">
+			<fileset dir="${dist}/lib" includes="gnu/**" />
+			<fileset dir="${dist}/lib" includes="org/**" />
+			<fileset dir="${dist}/lib" includes="com/**" />
+			<fileset dir="${dist}/lib" includes="de/**" />
+			<fileset dir="${dist}/lib" includes="java_cup/**" />
+			<manifest>
+				<attribute name="Main-Class" value="aprove.CommandLineInterface.MultiServer" />
+			</manifest>
+		</jar>
+		<antcall target="dist.clean" />
+	</target>
+
+	<!-- ===================================== grammars -->
+
+	<target name="generateGrammars" depends="diophantine,diologic,fp,haskell,fppp,idp,ipad,pl,polynomial,prolog,srs,srs2,simplify,acl,term,tes,ttt,xsrs,cls,strs,patrs,newTrs,newPtrs,ariTrs,Strategy,smtBenchmark,newIDP,llvm,intprog,T2IntSys,IntTRS,impact,InterprocInvariant" />
+
+	<property name="inputmodules" value="${package}/input" />
+	<property name="grammars.src" value="${src}/${inputmodules}/Grammars" />
+	<property name="grammars.gen" value="${basedir}/${gen}/${inputmodules}/Generated" />
+	<property name="grammars.build" value="${build}/${inputmodules}/Generated" />
+
+	<target name="diophantine_uptodate">
+		<uptodate property="diophantineuptodate.grammars" srcfile="${grammars.src}/diophantine.grammar" targetfile="${grammars.gen}/diophantine/parser/parser.dat" />
+	</target>
+	<target name="diologic_uptodate">
+		<uptodate property="diologicuptodate.grammars" srcfile="${grammars.src}/diologic.grammar" targetfile="${grammars.gen}/diologic/parser/parser.dat" />
+	</target>
+	<target name="fp_uptodate">
+		<uptodate property="fpuptodate.grammars" srcfile="${grammars.src}/fp.grammar" targetfile="${grammars.gen}/fp/parser/parser.dat" />
+	</target>
+	<target name="haskell_uptodate">
+		<uptodate property="haskelluptodate.grammars" srcfile="${grammars.src}/haskell.grammar" targetfile="${grammars.gen}/haskell/parser/parser.dat" />
+	</target>
+	<target name="fppp_uptodate">
+		<uptodate property="fpppuptodate.grammars" srcfile="${grammars.src}/fppp.grammar" targetfile="${grammars.gen}/fppp/parser/parser.dat" />
+	</target>
+	<target name="idp_uptodate">
+		<uptodate property="idpuptodate.grammars" srcfile="${grammars.src}/idp.grammar" targetfile="${grammars.gen}/idp/parser/parser.dat" />
+	</target>
+	<target name="ipad_uptodate">
+		<uptodate property="ipaduptodate.grammars" srcfile="${grammars.src}/ipad.grammar" targetfile="${grammars.gen}/ipad/parser/parser.dat" />
+	</target>
+	<target name="pl_uptodate">
+		<uptodate property="pluptodate.grammars" srcfile="${grammars.src}/pl.grammar" targetfile="${grammars.gen}/pl/parser/parser.dat" />
+	</target>
+	<target name="prolog_uptodate">
+		<uptodate property="prologuptodate.grammars" srcfile="${grammars.src}/prolog.grammar" targetfile="${grammars.gen}/prolog/parser/parser.dat" />
+	</target>
+	<target name="polynomial_uptodate">
+		<uptodate property="polynomialuptodate.grammars" srcfile="${grammars.src}/polynomial.grammar" targetfile="${grammars.gen}/polynomial/parser/parser.dat" />
+	</target>
+	<target name="srs_uptodate">
+		<uptodate property="srsuptodate.grammars" srcfile="${grammars.src}/srs.grammar" targetfile="${grammars.gen}/srs/parser/parser.dat" />
+	</target>
+	<target name="srs2_uptodate">
+		<uptodate property="srs2uptodate.grammars" srcfile="${grammars.src}/srs2.grammar" targetfile="${grammars.gen}/srs2/parser/parser.dat" />
+	</target>
+	<target name="simplify_uptodate">
+		<uptodate property="simplifyuptodate.grammars" srcfile="${grammars.src}/simplify.grammar" targetfile="${grammars.gen}/simplify/parser/parser.dat" />
+	</target>
+	<target name="acl_uptodate">
+		<uptodate property="acluptodate.grammars" srcfile="${grammars.src}/acl.grammar" targetfile="${grammars.gen}/acl/parser/parser.dat" />
+	</target>
+	<target name="impact_uptodate">
+		<uptodate property="impactuptodate.grammars" srcfile="${grammars.src}/impact.grammar" targetfile="${grammars.gen}/impact/parser/parser.dat" />
+	</target>
+	<target name="term_uptodate">
+		<uptodate property="termuptodate.grammars" srcfile="${grammars.src}/term.grammar" targetfile="${grammars.gen}/term/parser/parser.dat" />
+	</target>
+	<target name="tes_uptodate">
+		<uptodate property="tesuptodate.grammars" srcfile="${grammars.src}/tes.grammar" targetfile="${grammars.gen}/tes/parser/parser.dat" />
+	</target>
+	<target name="ttt_uptodate">
+		<uptodate property="tttuptodate.grammars" srcfile="${grammars.src}/ttt.grammar" targetfile="${grammars.gen}/ttt/parser/parser.dat" />
+	</target>
+	<target name="xsrs_uptodate">
+		<uptodate property="xsrsuptodate.grammars" srcfile="${grammars.src}/xsrs.grammar" targetfile="${grammars.gen}/xsrs/parser/parser.dat" />
+	</target>
+	<target name="cls_uptodate">
+		<uptodate property="clsuptodate.grammars" srcfile="${grammars.src}/cls.grammar" targetfile="${grammars.gen}/cls/parser/parser.dat" />
+	</target>
+	<target name="strs_uptodate">
+		<uptodate property="strsuptodate.grammars" srcfile="${grammars.src}/strs.grammar" targetfile="${grammars.gen}/strs/parser/parser.dat" />
+	</target>
+	<target name="patrs_uptodate">
+		<uptodate property="patrsuptodate.grammars" srcfile="${grammars.src}/patrs.grammar" targetfile="${grammars.gen}/patrs/parser/parser.dat" />
+	</target>
+	<target name="Strategy_uptodate">
+		<uptodate property="Strategyuptodate.grammars" srcfile="${grammars.src}/Strategy.g" targetfile="${grammars.gen}/Strategy/Strategy.tokens" />
+	</target>
+	<target name="newTrs_uptodate">
+		<uptodate property="newTrsuptodate.grammars" srcfile="${grammars.src}/NewTrs.g" targetfile="${grammars.gen}/newTrs/NewTrs.tokens" />
+	</target>
+	<target name="newPtrs_uptodate">
+		<uptodate property="newPtrsuptodate.grammars" srcfile="${grammars.src}/NewPtrs.g" targetfile="${grammars.gen}/newPtrs/NewPtrs.tokens" />
+	</target>
+	<target name="ariTrs_uptodate">
+		<uptodate property="ariTrsuptodate.grammars" srcfile="${grammars.src}/ariTrs.g" targetfile="${grammars.gen}/ariTrs/ariTrs.tokens" />
+	</target>
+	<target name="llvm_uptodate">
+		<uptodate property="llvmuptodate.grammars" srcfile="${grammars.src}/LLVM.g" targetfile="${grammars.gen}/llvm/LLVM.tokens" />
+	</target>
+	<target name="intprog_uptodate">
+		<uptodate property="intproguptodate.grammars" srcfile="${grammars.src}/IntProg.g" targetfile="${grammars.gen}/IntProg/IntProg.tokens" />
+	</target>
+	<target name="newIDP_uptodate">
+		<uptodate property="newIDPuptodate.grammars" srcfile="${grammars.src}/NewIDP.g" targetfile="${grammars.gen}/newIDP/NewIDP.tokens" />
+	</target>
+	<target name="T2IntSys_uptodate">
+		<uptodate property="T2IntSysuptodate.grammars" srcfile="${grammars.src}/T2IntSys.g" targetfile="${grammars.gen}/T2IntSys/T2IntSys.tokens" />
+	</target>
+	<target name="IntTRS_uptodate">
+		<uptodate property="IntTRSuptodate.grammars" srcfile="${grammars.src}/IntTRS.g" targetfile="${grammars.gen}/IntTRS/IntTRS.tokens" />
+	</target>
+	<target name="InterprocInvariant_uptodate">
+		<uptodate property="InterprocInvariantuptodate.grammars" srcfile="${grammars.src}/InterprocInvariant.g" targetfile="${grammars.gen}/InterprocInvariant/InterprocInvariant.tokens" />
+	</target>
+	<target name="smtBenchmark_uptodate">
+		<uptodate property="smtBenchmarkuptodate.grammars" srcfile="${grammars.src}/SMTBenchmark.g" targetfile="${grammars.gen}/SMTLIB/SMTBenchmark.tokens" />
+	</target>
+
+	<!-- sablecc grammars -->
+	<taskdef name="sablecc" classname="org.sablecc.ant.taskdef.Sablecc" classpath="${lib}/sablecc.jar" />
+
+	<target name="haskellParserModifier_compile.cleanup" unless="haskellParserModifier_ok_compile">
+		<delete file="${grammars.gen}/haskell/parser/parser.dat" />
+		<fail message="ERROR while building the parser modifier" />
+	</target>
+	<target name="haskellParserModifier_run.cleanup" unless="haskellParserModifier_ok_run">
+		<delete file="${grammars.gen}/haskell/parser/parser.dat" />
+		<fail message="ERROR while modifying parser" />
+	</target>
+	<target name="haskell" depends="haskell_uptodate" unless="haskelluptodate.grammars">
+		<delete dir="${grammars.gen}/haskell" />
+		<mkdir dir="${grammars.gen}/haskell" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="haskell.grammar" />
+		<available file="${grammars.gen}/haskell/parser/parser.dat" property="haskell_ok" />
+		<fail message="ERROR in building the haskell parser!" unless="haskell_ok" />
+
+		<!-- Building the Haskell Parser Modifier, checking for success, and resetting uptodate to false on failure -->
+		<mkdir dir="${build}" />
+		<delete file="${build}/${inputmodules}/Programs/haskell/HaskellParserModifier.class" />
+		<javac srcdir="${src}" destdir="${build}" includes="${inputmodules}/Programs/haskell/HaskellParserModifier.java" debug="on" deprecation="off" memoryMaximumSize="512m" fork="true" encoding="ISO-8859-1" tempdir="/tmp" optimize="on" failonerror="false">
+			<modulepath>
+				<path refid="modulepath" />
+			</modulepath>
+		</javac>
+		<available file="${build}/${inputmodules}/Programs/haskell/HaskellParserModifier.class" property="haskellParserModifier_ok_compile" />
+		<antcall target="haskellParserModifier_compile.cleanup" />
+		<echo />
+
+		<!-- Running the Haskell Parser Modifier, checking for success (result value == 0), and resetting uptodate on failure -->
+		<java classname="${package}.input.Programs.haskell.HaskellParserModifier" dir="${build}" fork="true" failonerror="false" resultproperty="haskellParserModifier_run_result">
+			<arg value="${grammars.gen}/haskell/parser/Parser.java" />
+		</java>
+		<condition property="haskellParserModifier_ok_run">
+			<equals arg1="${haskellParserModifier_run_result}" arg2="0" />
+		</condition>
+		<antcall target="haskellParserModifier_run.cleanup" />
+		<echo />
+	</target>
+
+	<target name="fp" depends="fp_uptodate" unless="fpuptodate.grammars">
+		<delete dir="${grammars.gen}/fp" />
+		<mkdir dir="${grammars.gen}/fp" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="fp.grammar" />
+		<available file="${grammars.gen}/fp/parser/parser.dat" property="fp_ok" />
+		<fail message="ERROR in building the FP parser!" unless="fp_ok" />
+	</target>
+	<target name="diophantine" depends="diophantine_uptodate" unless="diophantineuptodate.grammars">
+		<delete dir="${grammars.gen}/diophantine" />
+		<mkdir dir="${grammars.gen}/diophantine" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="diophantine.grammar" />
+		<available file="${grammars.gen}/diophantine/parser/parser.dat" property="diophantine_ok" />
+		<fail message="ERROR in building the DIOPHANTINE parser!" unless="diophantine_ok" />
+	</target>
+	<target name="diologic" depends="diologic_uptodate" unless="diologicuptodate.grammars">
+		<delete dir="${grammars.gen}/diologic" />
+		<mkdir dir="${grammars.gen}/diologic" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="diologic.grammar" />
+		<available file="${grammars.gen}/diologic/parser/parser.dat" property="diologic_ok" />
+		<fail message="ERROR in building the DIOLOGIC parser!" unless="diologic_ok" />
+	</target>
+	<target name="fppp" depends="fppp_uptodate" unless="fpppuptodate.grammars">
+		<delete dir="${grammars.gen}/fppp" />
+		<mkdir dir="${grammars.gen}/fppp" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="fppp.grammar" />
+		<available file="${grammars.gen}/fppp/parser/parser.dat" property="fppp_ok" />
+		<fail message="ERROR in building the FPPP parser!" unless="fppp_ok" />
+	</target>
+	<target name="idp" depends="idp_uptodate" unless="idpuptodate.grammars">
+		<delete dir="${grammars.gen}/idp" />
+		<mkdir dir="${grammars.gen}/idp" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="idp.grammar" />
+		<available file="${grammars.gen}/idp/parser/parser.dat" property="idp_ok" />
+		<fail message="ERROR in building the IDP parser!" unless="idp_ok" />
+	</target>
+	<target name="ipad" depends="ipad_uptodate" unless="ipaduptodate.grammars">
+		<delete dir="${grammars.gen}/ipad" />
+		<mkdir dir="${grammars.gen}/ipad" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="ipad.grammar" />
+		<available file="${grammars.gen}/ipad/parser/parser.dat" property="ipad_ok" />
+		<fail message="ERROR in building the IPAD parser!" unless="ipad_ok" />
+	</target>
+	<target name="pl" depends="pl_uptodate" unless="pluptodate.grammars">
+		<delete dir="${grammars.gen}/pl" />
+		<mkdir dir="${grammars.gen}/pl" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="pl.grammar" />
+		<available file="${grammars.gen}/pl/parser/parser.dat" property="pl_ok" />
+		<fail message="ERROR in building the PL parser!" unless="pl_ok" />
+	</target>
+	<target name="polynomial" depends="polynomial_uptodate" unless="polynomialuptodate.grammars">
+		<delete dir="${grammars.gen}/polynomial" />
+		<mkdir dir="${grammars.gen}/polynomial" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="polynomial.grammar" />
+		<available file="${grammars.gen}/polynomial/parser/parser.dat" property="polynomial_ok" />
+		<fail message="ERROR in building the POLYNOMIAL parser!" unless="polynomial_ok" />
+	</target>
+	<target name="prolog" depends="prolog_uptodate" unless="prologuptodate.grammars">
+		<delete dir="${grammars.gen}/prolog" />
+		<mkdir dir="${grammars.gen}/prolog" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="prolog.grammar" />
+		<available file="${grammars.gen}/prolog/parser/parser.dat" property="prolog_ok" />
+		<fail message="ERROR in building the PROLOG NEW parser!" unless="prolog_ok" />
+	</target>
+	<target name="srs" depends="srs_uptodate" unless="srsuptodate.grammars">
+		<delete dir="${grammars.gen}/srs" />
+		<mkdir dir="${grammars.gen}/srs" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="srs.grammar" />
+		<available file="${grammars.gen}/srs/parser/parser.dat" property="srs_ok" />
+		<fail message="ERROR in building the SRS parser!" unless="srs_ok" />
+	</target>
+	<target name="srs2" depends="srs2_uptodate" unless="srs2uptodate.grammars">
+		<delete dir="${grammars.gen}/srs2" />
+		<mkdir dir="${grammars.gen}/srs2" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="srs2.grammar" />
+		<available file="${grammars.gen}/srs/parser/parser.dat" property="srs2_ok" />
+		<fail message="ERROR in building the SRS2 parser!" unless="srs2_ok" />
+	</target>
+	<target name="simplify" depends="simplify_uptodate" unless="simplifyuptodate.grammars">
+		<delete dir="${grammars.gen}/simplify" />
+		<mkdir dir="${grammars.gen}/simplify" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="simplify.grammar" />
+		<available file="${grammars.gen}/simplify/parser/parser.dat" property="simplify_ok" />
+		<fail message="ERROR in building the SIMPLIFY parser!" unless="simplify_ok" />
+	</target>
+	<target name="acl" depends="acl_uptodate" unless="acluptodate.grammars">
+		<delete dir="${grammars.gen}/acl" />
+		<mkdir dir="${grammars.gen}/acl" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="acl.grammar" />
+		<available file="${grammars.gen}/acl/parser/parser.dat" property="acl_ok" />
+		<fail message="ERROR in building the ACL2 parser!" unless="acl_ok" />
+	</target>
+	<target name="impact" depends="impact_uptodate" unless="impactuptodate.grammars">
+		<delete dir="${grammars.gen}/impact" />
+		<mkdir dir="${grammars.gen}/impact" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="impact.grammar" />
+		<available file="${grammars.gen}/impact/parser/parser.dat" property="impact_ok" />
+		<fail message="ERROR in building the impact parser!" unless="impact_ok" />
+	</target>
+	<target name="term" depends="term_uptodate" unless="termuptodate.grammars">
+		<delete dir="${grammars.gen}/term" />
+		<mkdir dir="${grammars.gen}/term" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="term.grammar" />
+		<available file="${grammars.gen}/term/parser/parser.dat" property="term_ok" />
+		<fail message="ERROR in building the TERM parser!" unless="term_ok" />
+	</target>
+	<target name="tes" depends="tes_uptodate" unless="tesuptodate.grammars">
+		<delete dir="${grammars.gen}/tes" />
+		<mkdir dir="${grammars.gen}/tes" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="tes.grammar" />
+		<available file="${grammars.gen}/tes/parser/parser.dat" property="tes_ok" />
+		<fail message="ERROR in building the TES parser!" unless="tes_ok" />
+	</target>
+	<target name="ttt" depends="ttt_uptodate" unless="tttuptodate.grammars">
+		<delete dir="${grammars.gen}/ttt" />
+		<mkdir dir="${grammars.gen}/ttt" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="ttt.grammar" />
+		<available file="${grammars.gen}/ttt/parser/parser.dat" property="ttt_ok" />
+		<fail message="ERROR in building the TTT parser!" unless="ttt_ok" />
+	</target>
+	<target name="xsrs" depends="xsrs_uptodate" unless="xsrsuptodate.grammars">
+		<delete dir="${grammars.gen}/xsrs" />
+		<mkdir dir="${grammars.gen}/xsrs" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="xsrs.grammar" />
+		<available file="${grammars.gen}/xsrs/parser/parser.dat" property="xsrs_ok" />
+		<fail message="ERROR in building the XSRS parser!" unless="xsrs_ok" />
+	</target>
+	<target name="cls" depends="cls_uptodate" unless="clsuptodate.grammars">
+		<delete dir="${grammars.gen}/cls" />
+		<mkdir dir="${grammars.gen}/cls" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="cls.grammar" />
+		<available file="${grammars.gen}/cls/parser/parser.dat" property="cls_ok" />
+		<fail message="ERROR in building the CLS parser!" unless="cls_ok" />
+	</target>
+	<target name="strs" depends="strs_uptodate" unless="strsuptodate.grammars">
+		<delete dir="${grammars.gen}/strs" />
+		<mkdir dir="${grammars.gen}/strs" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="strs.grammar" />
+		<available file="${grammars.gen}/strs/parser/parser.dat" property="strs_ok" />
+		<fail message="ERROR in building the STRS parser!" unless="strs_ok" />
+	</target>
+	<target name="patrs" depends="patrs_uptodate" unless="patrsuptodate.grammars">
+		<delete dir="${grammars.gen}/patrs" />
+		<mkdir dir="${grammars.gen}/patrs" />
+		<sablecc src="${grammars.src}" outputdirectory="${gen}" includes="patrs.grammar" />
+		<available file="${grammars.gen}/patrs/parser/parser.dat" property="patrs_ok" />
+		<fail message="ERROR in building the PATRS parser!" unless="patrs_ok" />
+	</target>
+
+	<!-- antlr grammars -->
+	<target name="Strategy" depends="Strategy_uptodate" unless="Strategyuptodate.grammars">
+		<delete dir="${grammars.gen}/Strategy" />
+		<mkdir dir="${grammars.gen}/Strategy" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/Strategy" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/Strategy.g" />
+		</java>
+		<available file="${grammars.gen}/Strategy/Strategy.tokens" property="Strategy_ok" />
+		<fail message="ERROR in building the Strategy parser!" unless="Strategy_ok" />
+	</target>
+	<target name="newTrs" depends="newTrs_uptodate" unless="newTrsuptodate.grammars">
+		<delete dir="${grammars.gen}/newTrs" />
+		<mkdir dir="${grammars.gen}/newTrs" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/newTrs" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/NewTrs.g" />
+		</java>
+		<available file="${grammars.gen}/newTrs/NewTrs.tokens" property="newTrs_ok" />
+		<fail message="ERROR in building the newTrs parser!" unless="newTrs_ok" />
+	</target>
+	<target name="newPtrs" depends="newPtrs_uptodate" unless="newPtrsuptodate.grammars">
+		<delete dir="${grammars.gen}/newPtrs" />
+		<mkdir dir="${grammars.gen}/newPtrs" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/newPtrs" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/newPtrs.g" />
+		</java>
+		<available file="${grammars.gen}/newPtrs/newPtrs.tokens" property="newPtrs_ok" />
+		<fail message="ERROR in building the newPtrs parser!" unless="newPtrs_ok" />
+	</target>
+	<target name="ariTrs" depends="ariTrs_uptodate" unless="ariTrsuptodate.grammars">
+		<delete dir="${grammars.gen}/ariTrs" />
+		<mkdir dir="${grammars.gen}/ariTrs" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/ariTrs" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/ariTrs.g" />
+		</java>
+		<available file="${grammars.gen}/ariTrs/ariTrs.tokens" property="ariTrs_ok" />
+		<fail message="ERROR in building the ariTrs parser!" unless="ariTrs_ok" />
+	</target>
+	<target name="newIDP" depends="newIDP_uptodate" unless="newIDPuptodate.grammars">
+		<delete dir="${grammars.gen}/newIDP" />
+		<mkdir dir="${grammars.gen}/newIDP" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/newIDP" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/NewIDP.g" />
+		</java>
+		<available file="${grammars.gen}/newIDP/NewIDP.tokens" property="newIDP_ok" />
+		<fail message="ERROR in building the newIDP parser!" unless="newIDP_ok" />
+	</target>
+	<target name="InterprocInvariant" depends="InterprocInvariant_uptodate" unless="InterprocInvariantuptodate.grammars">
+		<delete dir="${grammars.gen}/InterprocInvariant" />
+		<mkdir dir="${grammars.gen}/InterprocInvariant" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/InterprocInvariant" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/InterprocInvariant.g" />
+		</java>
+		<available file="${grammars.gen}/InterprocInvariant/InterprocInvariant.tokens" property="InterprocInvariant_ok" />
+		<fail message="ERROR in building the InterprocInvariant parser!" unless="InterprocInvariant_ok" />
+	</target>
+	<target name="IntTRS" depends="IntTRS_uptodate" unless="IntTRSuptodate.grammars">
+		<delete dir="${grammars.gen}/IntTRS" />
+		<mkdir dir="${grammars.gen}/IntTRS" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/IntTRS" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/IntTRS.g" />
+		</java>
+		<available file="${grammars.gen}/IntTRS/IntTRS.tokens" property="IntTRS_ok" />
+		<fail message="ERROR in building the IntTRS parser!" unless="IntTRS_ok" />
+	</target>
+	<target name="T2IntSys" depends="T2IntSys_uptodate" unless="T2IntSysuptodate.grammars">
+		<delete dir="${grammars.gen}/T2IntSys" />
+		<mkdir dir="${grammars.gen}/T2IntSys" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/T2IntSys" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/T2IntSys.g" />
+		</java>
+		<available file="${grammars.gen}/T2IntSys/T2IntSys.tokens" property="T2IntSys_ok" />
+		<fail message="ERROR in building the T2IntSys parser!" unless="T2IntSys_ok" />
+	</target>
+	<target name="smtBenchmark" depends="smtBenchmark_uptodate" unless="smtBenchmarkuptodate.grammars">
+		<delete dir="${grammars.gen}/SMTLIB" />
+		<mkdir dir="${grammars.gen}/SMTLIB" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/SMTLIB" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/SMTBenchmark.g" />
+		</java>
+		<available file="${grammars.gen}/SMTLIB/SMTBenchmark.tokens" property="smtBenchmark_ok" />
+		<fail message="ERROR in building the SMTBenchmark parser!" unless="smtBenchmark_ok" />
+	</target>
+	<target name="llvm" depends="llvm_uptodate" unless="llvmuptodate.grammars">
+		<delete dir="${grammars.gen}/llvm" />
+		<mkdir dir="${grammars.gen}/llvm" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/llvm" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/LLVM.g" />
+		</java>
+		<available file="${grammars.gen}/llvm/LLVM.tokens" property="llvm_ok" />
+		<fail message="ERROR in building the LLVM parser!" unless="llvm_ok" />
+	</target>
+	<target name="intprog" depends="intprog_uptodate" unless="intproguptodate.grammars">
+		<delete dir="${grammars.gen}/IntProg" />
+		<mkdir dir="${grammars.gen}/IntProg" />
+		<java jar="${antlr}" failonerror="true" fork="true">
+			<arg line="-fo ${grammars.gen}/IntProg" />
+			<arg value="-make" />
+			<arg value="-verbose" />
+			<arg value="${grammars.src}/IntProg.g" />
+		</java>
+		<available file="${grammars.gen}/IntProg/IntProg.tokens" property="intprog_ok" />
+		<fail message="ERROR in building the C integer program parser!" unless="intprog_ok" />
+	</target>
+
+	<!-- ===================================== generate haskell prelude -->
+
+	<property name="haskellPrelude.gen" value="${basedir}/${gen}/${inputmodules}/Programs/haskell/" />
+	<property name="haskellPrelude.build" value="${build}/${inputmodules}/Programs/haskell/" />
+	<property name="haskellPreludeBigSerFile" value="${haskellPrelude.gen}/PreludeBigSer.hs" />
+	<property name="haskellPreludeSmallSerFile" value="${haskellPrelude.gen}/PreludeSmallSer.hs" />
+
+	<target name="haskellPreludeSer_uptodate">
+		<uptodate property="haskellPreludeSer_isuptodate">
+			<srcfiles dir="${src}/${package}/verification/oldframework/Haskell" includes="**/*.java" />
+			<srcfiles dir="${src}/${package}/verification/oldframework/Utility/Graph" includes="**/*.java" />
+			<srcfiles dir="${src}/${package}/input/Programs/haskell" includes="**/*" />
+			<mapper type="merge" to="${haskellPreludeSmallSerFile}" />
+		</uptodate>
+	</target>
+	<target name="generateHaskellPrelude" depends="compile,haskellPreludeSer_uptodate" unless="haskellPreludeSer_isuptodate">
+		<mkdir dir="${haskellPrelude.gen}" />
+		<java classname="aprove.input.Programs.haskell.Translator" fork="yes" dir="${build}" failonerror="true" maxmemory="256m">
+			<!--<arg line="${args}"/>-->
+			<arg value="prelude" />
+			<arg value="${haskellPreludeBigSerFile}" />
+			<arg value="PRELUDE_BIG" />
+			<classpath>
+				<path refid="modulepath" />
+				<pathelement location="${build}" />
+			</classpath>
+		</java>
+
+		<java classname="aprove.input.Programs.haskell.Translator" fork="yes" dir="${build}" failonerror="true" maxmemory="256m">
+			<!--<arg line="${args}"/>-->
+			<arg value="prelude" />
+			<arg value="${haskellPreludeSmallSerFile}" />
+			<arg value="PRELUDE_SMALL" />
+			<classpath>
+				<path refid="modulepath" />
+				<pathelement location="${build}" />
+			</classpath>
+		</java>
+	</target>
+</project>

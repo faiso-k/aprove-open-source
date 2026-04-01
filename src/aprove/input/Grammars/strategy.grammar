@@ -1,0 +1,156 @@
+//
+//   Title:        Strategy grammar
+//   Description:  grammar definition for Strategy Programs
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2004
+//   Authors:      Martin Mertens
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.strategy;
+
+Helpers
+
+ any = ['_' + '-'];
+ digit = ['0' .. '9'];
+ lowercase_letter = ['a' .. 'z'];
+ uppercase_letter = ['A' .. 'Z'];
+ letter = [lowercase_letter + uppercase_letter];
+ anything = [letter + any] ;
+ 
+Tokens
+
+// new strategies
+
+ repeat = 'Repeat' | 'REPEAT' | 'RepeatS' | 'REPEATS';
+ any = 'Any' | 'ANY';
+ solve = 'Solve' | 'SOLVE';
+ solvet = 'Prove' | 'PROVE';
+ solvef = 'Disprove' | 'DISPROVE';
+ maybe = 'Maybe' | 'MAYBE';
+ first = 'First' | 'FIRST';
+ starplusmaybe = '*'|'+'|'?';
+ timer = 'Timer' | 'TIMER';
+ walltimer = 'WallTimer' | 'WALLTIMER';
+ delay = 'Delay' | 'DELAY';
+ anydelay = 'AnyDelay' | 'ANYDELAY';
+ anyk = 'AnyK' | 'ANYK';
+ sequence = 'Sequence' | 'SEQUENCE';
+ iterate = 'Iterate' | 'ITERATE';
+ iterates = 'IterateS' | 'ITERATES' | 'Iterates';
+ profile = 'Profile' | 'PROFILE';
+ 
+ // imports
+ 
+ as = 'as';
+ import = 'import' | 'Import' | 'IMPORT';
+ module = 'module' | 'Module' | 'MODULE';
+ 
+ // other tokens 
+ 
+ open = '(';
+ close = ')';
+ para_open = '[';
+ para_close = ']';
+ equals = '=' | 0x2261;
+ comma = ',';
+ dot = '.';
+ slash = '/';
+ backslash = '\';
+ uncond = ':';
+ semicolon = ';';
+ defines = ':='; 
+ id = uppercase_letter (anything | digit)* | '"' [[0..0xffff]-[[10+13]+'"']]* '"';
+ var = lowercase_letter (anything | digit)*;
+ num = '-'? digit* ('.' digit*)?;
+ new_line = (13 10|10|13); 
+ blanks = (' ' | 9 )+;
+ eof = 26;
+ line_comments = '#' [[0..0xffff]-[10+13]]*(13 10|10|13)?;
+ full_comments = '~' [[0..0xffff]-'}']*'~'; 
+ line_expansion = '\' (13 10|10|13);
+
+Ignored Tokens
+ blanks, line_comments, full_comments, eof, line_expansion;
+
+Productions  
+ 
+ // main program
+ 
+ program = new_line* equation+;
+ 
+ equation = {import}  importline new_line* |
+       	    {vardef} varequation new_line*;
+
+ // import of strategies
+ 
+ importline = import importstatement as_statement? ;
+ 
+ importstatement = {id}  importrest* id | 
+ 				   {var} importrest* var;
+ 				   
+ importrest = {var} var dot |
+ 			  {id}  id  dot ;
+ 
+ as_statement = {var} as var |
+ 				{id} as id ;
+ 				
+ // strategy definitions
+
+ varequation = [declaration]:var equals strategyterm;
+
+ strategyterm = uncond_sequence_term;
+
+ uncond_sequence_term =  uncond_term* sequence_term;
+ uncond_term = sequence_term uncond;  
+  
+ sequence_term = semicolon_term* star_term;
+ semicolon_term = star_term semicolon;
+ 
+       
+ star_term = {star}fallback_term starplusmaybe |
+ 		     {nothing}fallback_term;
+ 
+ fallback_term = {id} id |
+                 {id_parameter} id para_open parametertree? para_close |                 
+                 {first} first termlist? |
+                 {timer} timer open num comma strategyterm close |
+                 {walltimer} walltimer open num comma strategyterm close |
+                 {profile} profile open [type]:id [a_comma]:comma [filename]:id [another_comma]:comma strategyterm close |
+                 {delay} delay open num comma strategyterm close |
+                 {anydelay} anydelay open num [a_comma]:comma [first]:strategyterm [another_comma]:comma [then]:strategyterm close |
+                 {anyk} anyk open num [a_comma]:comma [first]:strategyterm [another_comma]:comma [then]:strategyterm close |
+                 {repeat} repeat open [lowerbound]:num [lcomma]:comma [upperbound]:num [ucomma]:comma strategyterm close |
+                 {repeatstar} repeat open [lowerbound]:num [lcomma]:comma [upperbound]:starplusmaybe [ucomma]:comma strategyterm close |
+                 {var} importrest* var |
+                 {brackets} open strategyterm close |
+//                 {block} block_open strategyterm block_close |
+// new strategy constructs                
+                 //{repeat} repeat open strategyterm close |
+                 //{repeats} repeats open strategyterm close |
+                 {any} any termlist? |
+                 {sequence} sequence termlist? |
+                 {solve} solve open strategyterm close |
+                 {solvet} solvet open strategyterm close |
+                 {solvef} solvef open strategyterm close |
+                 {maybe} maybe open strategyterm close |
+                 {iterate} iterate open strategyterm close |
+                 {iterates} iterates open strategyterm close ;
+
+ termlist = {empty} open close |
+             {some} open termcomma* strategyterm close; 
+             
+ termcomma = strategyterm comma;
+ 
+ // parameter definitions
+ 
+ parametertree = paracomma* patom ;
+ 
+ paracomma = patom comma;
+ 
+ patom = {single} [key]:id equals [value]:id |
+         {single_num} [key]:id equals [value]:num |
+         {multi} [key]:id equals [value]: id para_open parametertree? para_close |
+         {multi_num} [key]:id equals [value]: num para_open parametertree? para_close ;

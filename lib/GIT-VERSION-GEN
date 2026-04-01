@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Little helper script for benchmarking and git.
+# Pushes HEAD to aprove repository and adds a tag
+# in the refs/bench/ namespace.
+#
+# If you need to use another repository (e.g. because you are not working on
+# aprove), you can add put REPOS=url-to-my-repository in ~/.aprove-repository
+
+REPOS=/home/aprove/git/aprove.git
+test -f ~/.aprove-repository && source ~/.aprove-repository
+
+die() {
+    echo >&2 "$*"
+    exit 1
+}
+
+write_version() {
+    if [ -n "$VERSION_FILE" ]; then
+        echo "$*" > "$VERSION_FILE"
+    else
+        echo "$*"
+    fi
+}
+
+if [ $# -eq 0 ]; then
+    VERSION_FILE=
+else
+    VERSION_FILE=$1
+fi
+
+if test ! -d .git; then
+    write_version UNKNOWN
+    exit
+fi
+
+# Pushing commit to global testing repository
+user=$(id -un)
+date=$(date +%Y%m%d)
+sha1=$(git rev-parse HEAD) ||
+    die "Parsing HEAD failed!?"
+tagname=refs/benchs/$sha1
+version="$sha1 $user $date"
+
+git push "$REPOS" HEAD:$tagname 2>/dev/null || {
+    version="$version unpublished"
+    echo >&2 "GEN-VERSION: Pushing HEAD to $tagname in $REPOS failed!"
+}
+
+git update-index -q --refresh
+if [ -n "$(git diff-index --name-only HEAD --)" ]; then
+    version="$version dirty"
+    echo >&2 GEN-VERSION: Dirty Head!
+fi
+
+write_version $version

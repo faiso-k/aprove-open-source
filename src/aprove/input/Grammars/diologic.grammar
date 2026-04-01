@@ -1,0 +1,84 @@
+// 
+//   Title:        Diophantine Logic grammar
+//   Description:  grammar definition for diophantine logic formulas
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2007
+//   Authors:      Stephan Swiderski, Christoph Weidmann and Patrick Kabasci
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id: polynomial.grammar,v 1.2 2004/05/21 15:09:58 spf Exp $
+//
+Package aprove.input.Generated.diologic;
+
+Helpers
+  digit = ['0' .. '9'];
+  letter = [['a' .. 'z'] + ['A' .. 'Z']];
+
+Tokens
+  plus = '+';
+  minus = '-';
+  times = '*' | '.';
+  power = '^';
+  gt = '>';
+  lt = '<';
+  eq = '=';
+  semicolon = ';';
+  gte = '>=';
+  lte = '<=';
+  or = 'or' | '|' | '||';
+  and = 'and' | '&' | '&&';
+  imp = '->';
+  eqv = '<->';
+  xor = 'xor';
+  neg = 'not' | 'neg' | '!';
+  true = 'true';
+  false = 'false';
+  int = digit+;
+  open = '(';
+  close = ')';
+  var = letter (letter | digit | '_')*;
+  whitespace = (' ' | 9)+ | (10|13|10 13);
+
+Ignored Tokens
+  whitespace;
+
+Productions
+formula = {impformula} [lhs]:xorformula imp [rhs]:xorformula | 
+          {eqvformula} [lhs]:xorformula eqv [rhs]:xorformula | 
+          {xorformula} xorformula;
+xorformula = orformula xororformula*;
+xororformula = xor orformula;
+orformula = andformula orandformula*;
+orandformula = or andformula;
+andformula = litformula andlitformula*;
+andlitformula = and litformula;
+litformula = {neg} neg litformula |
+             {atom} atom;
+atom = {diophantine} diophantine |
+       {true} true | 
+       {false} false; 
+       
+diophantine = {rel} [lhs]:polynomial relation [rhs]:polynomial |
+              {poly} polynomial ; // hack, cause parentheses overlap 
+
+polynomial = sumformula;
+sumformula = factorf pmsumf*;
+pmsumf = {plus} plus factorf |
+         {minus} minus factorf;
+factorf = pmexpf factorpmexpf*;
+factorpmexpf = times pmexpf;
+pmexpf = {minus} minus pmexpf |
+         {plus} plus pmexpf |
+         {none} expf;
+expf = base exppotf?;
+exppotf = power int;
+base = {integer} int |
+       {polynomial} open formula close | // formula instead of polynomial due to the hack
+       {variable} var;
+relation = {gt} gt | 
+           {eq} eq |
+           {lt} lt | 
+           {gte} gte |
+           {lte} lte;
+           

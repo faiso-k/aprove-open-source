@@ -1,0 +1,78 @@
+//
+//   Title:        ACL2 grammar
+//   Description:  grammar definition for ACL2 files
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2008
+//   Authors:      Andreas Kelle-Emden
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$
+//
+Package aprove.input.Generated.acl;
+
+Tokens
+
+ symbolt   = '''? ('T' | 't');
+ symbolnil = '''? ('N' | 'n') ('I' | 'i') ('L' | 'l');
+ symbolpackage = [[0..0xffff]-[[[[[' '+9]+10]+13]+'(']+')']]+ '::' [[0..0xffff]-[[[[[' '+9]+10]+13]+'(']+')']]+;
+ symbolextra = '|' [[0..0xffff]-'|']+ '|';
+ symbol    = ''' [[0..0xffff]-[[[[[' '+9]+10]+13]+'(']+')']]+;
+ open = '(';
+ listopen = ''' '(';
+ close = ')';
+ dot = '.';
+ string = '"' [[0..0xffff]-'"']+ '"';
+ numberdif = ('-' | '+')? ['0' .. '9']+ '/' ['0' .. '9']+;
+ number    = ('-' | '+')? ['0' .. '9']+;
+ numberbin = '#b' ('0' | '1')+;
+ numberc   = '#c(' ('-' | '+')? ['0' .. '9']+ ' ' ('-' | '+')? ['0' .. '9']+ ')';
+ blanks = (' ' | 9 | 10 | 13 )+;
+ line_comments = ';' [[0..0xffff]-[10+13]]*(10|13|10 13)?;
+ char = '#\' [[0..0xffff]-[[[[[' '+9]+10]+13]+'(']+')']]+;
+ defun = 'defun';
+ 
+ 
+ 
+ id = [[0..0xffff]-[[[[[' '+9]+10]+13]+'(']+')']]+;
+ 
+Ignored Tokens
+ blanks, line_comments;
+
+Productions
+ commandset =
+   {cs_commands} command*;
+   
+ command =
+   {com_defun} [bo1]:open defun [funcname]:id [bo2]:open [params]:id* [bc2]:close function [bc1]:close;
+   
+ function =
+   {fn_normal} open [funcname]:id [params]:param* close;
+   
+ param =   
+   {p_function} [func]:function |
+   {p_number}    number |
+   {p_numberc}   numberc |
+   {p_numberbin} numberbin |
+   {p_numberdif} numberdif |
+   {p_var} id |
+   {p_symbol}    symbol |
+   {p_t}         symbolt |
+   {p_nil}       symbolnil |
+   {p_symbolpak} symbolpackage |
+   {p_symbolext} symbolextra |
+   {p_char} char |
+   {p_string} string |
+   {p_slist} listopen param close |
+   {p_list}  listopen [left]:param dot [right]:param close;
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   

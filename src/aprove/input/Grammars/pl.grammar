@@ -1,0 +1,73 @@
+//
+//   Title:        PL grammar
+//   Description:  grammar definition for predicate logic formulas
+//   Project:      AProVE
+//   Copyright:    Copyright (c) 2003
+//   Authors:      Achim Luecking, Christian Haselbach, Stephan Falke, Ralf Behle
+//   Department:   Teaching and Research Area for Computer Science II
+//   Institution:  RWTH Aachen / Templergraben 55 / D-52056 Aachen
+//
+//   $Id$ 
+//
+Package aprove.input.Generated.pl;
+
+Helpers
+ digit = ['0' .. '9'];
+ letter = [['a' .. 'z'] + ['A' .. 'Z']];
+ newline = ( 10 | 13 | 10 13);
+ infixletter =  [[[[[[[[[[[[[[[[[[['@' + '|' ]+ '&' ]+ '%' ]+ '/' ]+ '\' ]+':']+ '-' ]+ '+' ]+ '*' ]+ '.' ]+ '<' ]+ '>' ]+ '=' ]+ '!' ]+ '$' ]+ '?' ]+ '^' ]+0x2200]+0x2203];
+
+Tokens
+ open = '(';
+ close = ')';
+ comma = ',';
+ dot = '.';
+ not = '~';
+ or  = '\/'; 
+ and = '/\'; 
+ implication = '->';
+ equal = '=';
+ true = 'T' | 'True';
+ false = 'F' | 'False';
+ delimiter = newline+;
+ blanks = (' ' | 9 )+;
+ prefix_id = 'id_prefix''a'+;
+ infix_id = infixletter+('_' (letter | digit)+)?;
+ id = [[0..0xffff]-[[[[[[[[[['~'+'#']+' ']+9]+10]+13]+'(']+')']+',']+'.']+infixletter]]+;
+
+Ignored Tokens
+ blanks;
+
+Productions
+  formula =
+   {equiv} [left]:sformula [junc]:equal [right]:formula |
+   {or} [left]:sformula [junc]:or [right]:formula |
+   {and} [left]:sformula [junc]:and [right]:formula |
+   {implication} [left]:sformula [junc]:implication [right]:formula |
+   {tformula} typedeflist dot formula |
+   {norm} sformula;
+  typedeflist  =
+  	typedefcomma* typedef;
+  typedefcomma = 
+  	typedef comma;
+  typedef =
+  	id type; 
+  type = 
+    [colon]:infix_id [type]:id;
+  sformula =
+   {brace} open formula close |
+   {neg} not sformula |
+   {tt} true |
+   {ff} false |
+   {atom} [left]:term equal [right]:term;
+ term =
+   {infix} [left]:nterm infix_id [right]:term |
+   {normal} nterm;
+ nterm =
+   {var} id |
+   {const} prefix_id |
+   {funct_app} prefix_id open termlist close |
+   {paren} open term close;
+ termlist = termcomma* term;
+ termcomma = term comma;
+
