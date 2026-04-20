@@ -122,6 +122,8 @@ public class Main {
                         this.printResult(root.getTruthValue(), options.mode);
                     } else {
                         System.out.println("KILLED");
+                      	System.out.println("\nFound an example we currently can't prove?\n"
+                    			+ "-> Consider contributing it to the benchmark set: https://mysolvertimesout.org/\n");
                     }
                 } else {
                     this.printResult(root.getTruthValue(), options.mode);
@@ -173,6 +175,10 @@ public class Main {
     private void printResult(TruthValue res, Mode mode) {
         if (mode == Mode.WST) {
             System.out.println(res.toWstString());
+            if (res.fallbackToYNM().equals(YNM.MAYBE)) {
+            	System.out.println("\nFound an example we currently can't prove?\n"
+            			+ "-> Consider contributing it to the benchmark set: https://mysolvertimesout.org/\n");
+            }
         } else {
             assert mode == Mode.BENCHMARK;
             System.out.println(res.toBenchmarkResult());
