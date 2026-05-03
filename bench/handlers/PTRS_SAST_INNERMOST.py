@@ -2,7 +2,7 @@ from pathlib import Path
 import tempfile
 import lib.solver as s
 
-RESULT_LABELS = ["AST", "SAST", "MAYBE", "KILLED", "ERROR"]
+RESULT_LABELS = ["YES", "NO", "MAYBE", "KILLED", "ERROR"]
 
 
 def run(timeout: int, benchmark: Path, cert: bool) -> str:
