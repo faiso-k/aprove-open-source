@@ -6,7 +6,7 @@
 
 <p align="center">
   Automated reasoning about program termination and complexity.<br>
-  <i>Version: 0.1.0-alpha</i>
+  <i>Version: 1.0.0 : Capybara</i>
 </p>
 
 ---
