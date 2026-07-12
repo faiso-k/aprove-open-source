@@ -4,11 +4,13 @@ import java.util.*;
 import java.util.logging.*;
 
 import aprove.*;
+import aprove.input.Programs.haskell.PositivityChecker;
 import aprove.input.Programs.haskell.HaskellParserCheck;
 import aprove.input.Utility.*;
 import aprove.prooftree.Obligations.*;
 import aprove.strategies.ExecutableStrategies.*;
 import aprove.strategies.Parameters.*;
+import aprove.verification.dpframework.HaskellProblem.HaskellProgram;
 import aprove.verification.dpframework.JBCProblem.*;
 import aprove.verification.oldframework.Input.*;
 import aprove.verification.oldframework.Input.Annotators.*;
@@ -78,6 +80,22 @@ public class AProVE implements ProveRunner {
         this.metadata = this.buildMetadata();
     }
 
+    public AProVE(final BasicObligation obligation, final Language language, final String name) {
+        this.input = null;
+        this.typedInput = new TypedInput(ModedType.createModedInput(language), obligation, null);
+        final BasicObligationNode node = new BasicObligationNode(obligation);
+        this.root = node;
+        this.positions = Collections.singletonList(node);
+        this.metadata = buildDirectMetadata(name);
+        Main.firstObligation = false;
+    }
+
+    private Map<Metadata, Object> buildDirectMetadata(final String name) {
+        final Map<Metadata, Object> result = new EnumMap<>(Metadata.class);
+        result.put(Metadata.PROBLEM_PATH_NAME, name);
+        return result;
+    }
+
     public StrategyProgram getEffectiveStrategy() {
         if (this.presetStrategy != null) {
             return this.presetStrategy;
@@ -97,7 +115,7 @@ public class AProVE implements ProveRunner {
     public ObligationNode getRoot() {
         return this.root;
     }
-    
+
     public TypedInput getTypedInput() {
         return this.typedInput;
     }
@@ -164,6 +182,20 @@ public class AProVE implements ProveRunner {
     private void parse(final HandlingMode forcedHandling) throws SourceException {
         final ExtensionTypeAnalyzer eta = new ExtensionTypeAnalyzer();
         this.typedInput = eta.analyze(this.input);
+        if (forcedHandling != null) {
+            this.forceHandlingMode(forcedHandling);
+        }
+        final PublicAnnotator annotator = new DefaultAnnotator();
+        final AnnotatedInput annotate = annotator.annotate(this.typedInput);
+        final ObligationFactory of = new MetaObligationFactory();
+        final Pair<ObligationNode, List<BasicObligationNode>> rootAndPositions = of.getRootAndPositions(annotate);
+        Main.firstObligation = false;
+        this.root = rootAndPositions.x;
+        this.positions = rootAndPositions.y;
+        if (this.getTypedInput().getLanguage().equals(Language.HASKELL)) {
+            final PositivityChecker checker = new PositivityChecker();
+            checker.checkForIOResult(((HaskellProgram) this.typedInput.getInput()).getModules());
+        }
         throw new HaskellParserCheck("Passed");
 //        if (forcedHandling != null) {
 //            this.forceHandlingMode(forcedHandling);
