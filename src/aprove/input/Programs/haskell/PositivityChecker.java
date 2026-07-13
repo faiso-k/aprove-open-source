@@ -30,14 +30,6 @@ public class PositivityChecker {
             }
             decls.addAll(module.getNewExpEntities());
         }
-// may be helpful to have the prelude types in the graph, but not for now not consistent (e.g. Nat is not exported therefore Int not handled correctly)
-//        final Set<HaskellEntity> entities = mods.getPrelude().getExpEntities();
-//        final HashMap<String, TyConsEntity> preludeTyCons = new HashMap<>();
-//        for (HaskellEntity entity : entities) {
-//            if (entity instanceof TyConsEntity tyConsEntity && !Objects.equals(entity.getName(), "->")) {
-//                preludeTyCons.put(tyConsEntity.getName(), tyConsEntity);
-//            }
-//        }
 
         final List<TyConsEntity> dataDecl = new ArrayList<>();
         final List<TySynEntity> synTypeDecls = new ArrayList<>();
@@ -54,24 +46,6 @@ public class PositivityChecker {
         OccurrenceGraph graph = graphBuilderResult.graph();
         dataDecl.clear();
         dataDecl.addAll(graphBuilderResult.dataDecls());
-        System.out.println("Occurrence graph:");
-        System.out.println(graph.toStringWithoutUnused());
-
-
-//        final List<DataDecl> dataDecl = decls.stream()
-//                .filter(decl -> decl instanceof DataDecl)
-//                .map(decl -> (DataDecl) decl)
-//                .toList();
-//
-//        final List<SynTypeDecl> synTypeDecls = decls.stream()
-//                .filter(decl -> decl instanceof SynTypeDecl)
-//                .map(decl -> (SynTypeDecl) decl)
-//                .toList();
-
-
-//        GraphBuilder builder = new GraphBuilder();
-//        OccurrenceGraph graph = builder.buildFromDataDecl(dataDecl, synTypeDecls);
-//        OccurrenceGraph graph = builder.buildFromDataDecl(dataDecl, synTypeDecls, preludeTyCons);
 
         List<Violation> violations = new ArrayList<>();
         Map<String, Occurrence> selfLoops = new LinkedHashMap<>();
@@ -90,7 +64,6 @@ public class PositivityChecker {
     }
 
     public void check(Modules mods) throws StrictPositivityException {
-//        debug(mods);
         Result result = computeResult(mods);
         if (!result.isValid()) {
             StringBuilder sb = new StringBuilder();
@@ -121,36 +94,9 @@ public class PositivityChecker {
         }
     }
 
-    public void debug(Modules mods) {
-        System.out.println("=== Positivity check ===");
-        Result result = computeResult(mods);
-
-        System.out.println("Occurrence graph:");
-//        System.out.println(result.graph.toStringWithoutUnused());
-        System.out.println(result.graph);
-
-        System.out.println("Self-loop polarities:");
-        for (Map.Entry<String, Occurrence> entry : result.selfLoops().entrySet()) {
-            String name = entry.getKey();
-            Occurrence occ = entry.getValue();
-            System.out.println(name + ": " + occ);
-        }
-
-        if (result.isValid()) {
-            System.out.println("RESULT: PASSED (strictly positive)");
-        } else {
-            System.out.println("RESULT: FAILED");
-            result.violations().forEach(v -> System.out.println("  " + v));
-        }
-
-        System.out.println();
-    }
-
     public record Violation(TyConsEntity datatype, Occurrence loopOccurrence) {
         @Override
         public String toString() {
-//            return typeName(datatype) + " is not strictly positive" +
-//                    " (self-loop polarity = " + loopOccurrence.toString() + ")";
 
             if (datatype.getModule().getName().equals("Main")) {
                 return datatype.getName() + " at line " + datatype.getValue().getToken().getLine() + " is not strictly positive" +
