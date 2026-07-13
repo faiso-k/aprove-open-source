@@ -349,9 +349,6 @@ public class Translator extends aprove.verification.oldframework.Input.Translato
                 this.loadModule(mods.getNextNeededModule(), mods);
             }
 
-            final PositivityChecker positivityChecker = new PositivityChecker();
-            positivityChecker.check(mods);
-
             this.setState(mods.buildHaskellProgram());
             //JTreeDialog.create("Modules",new StructureTreeModel(new ReflectTreeEntry("","Modules",mods))).show();
 
@@ -384,6 +381,9 @@ public class Translator extends aprove.verification.oldframework.Input.Translato
             if (s.length() > 0) {
                 input.setProtoAnnotation(s);
             }
+
+            final PositivityChecker positivityChecker = new PositivityChecker();
+            positivityChecker.check(mods);
 
         } catch (final ParserException e) {
             this.handlePLException(e);

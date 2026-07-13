@@ -4,22 +4,25 @@ import aprove.verification.oldframework.Haskell.BasicTerms.Apply;
 import aprove.verification.oldframework.Haskell.BasicTerms.Cons;
 import aprove.verification.oldframework.Haskell.BasicTerms.Var;
 import aprove.verification.oldframework.Haskell.Declarations.DataDecl;
+import aprove.verification.oldframework.Haskell.Declarations.HaskellDecl;
 import aprove.verification.oldframework.Haskell.Declarations.SynTypeDecl;
 import aprove.verification.oldframework.Haskell.HaskellObject;
+import aprove.verification.oldframework.Haskell.Modules.HaskellEntity;
 import aprove.verification.oldframework.Haskell.Modules.TyConsEntity;
+import aprove.verification.oldframework.Haskell.Modules.TySynEntity;
 import aprove.verification.oldframework.Haskell.Typing.DataCon;
 
 import java.util.*;
 import java.util.stream.IntStream;
 
+
+
 public class GraphBuilder {
     private final OccurrenceGraph graph;
 
-    private String currentDef;
+    private final List<TyConsEntity> dataDecls;
 
     private final Set<String> datatypeNames;
-
-    private Map<String, Integer> paramIndex;
 
     private Map<String, TyConsEntity> preludeTyCons;
 
@@ -30,56 +33,100 @@ public class GraphBuilder {
             "IOErrorKind", "Char", "Ordering", "Double", "String", "AET", "Ratio"
     ));
 
+    public record GraphBuilderResult (OccurrenceGraph graph, List<TyConsEntity> dataDecls) {}
+
     public GraphBuilder() {
+        this.dataDecls = new ArrayList<>();
         this.datatypeNames = new HashSet<>();
         this.graph = new OccurrenceGraph();
     }
 
-    public OccurrenceGraph buildFromDataDecl(List<DataDecl> dataDecls, List<SynTypeDecl>  synTypeDecls, Map<String, TyConsEntity> preludeTyConsMap) {
-        this.preludeTyCons = preludeTyConsMap;
-        dataDecls.forEach(d -> datatypeNames.add(d.getDefType().getToken().getText()));
-        synTypeDecls.forEach(d -> datatypeNames.add(d.getDefType().getToken().getText()));
-        synTypeDecls.forEach(this::processSynTypes);
-        for (DataDecl d : dataDecls) {
-            processDataDecl(d, d.getDefType().getToken().getText());
+//    public OccurrenceGraph buildFromDataDecl(List<DataDecl> dataDecls, List<SynTypeDecl>  synTypeDecls, Map<String, TyConsEntity> preludeTyConsMap) {
+//        this.preludeTyCons = preludeTyConsMap;
+//        dataDecls.forEach(d -> datatypeNames.add(d.getDefType().getToken().getText()));
+//        synTypeDecls.forEach(d -> datatypeNames.add(d.getDefType().getToken().getText()));
+//        synTypeDecls.forEach(this::processSynTypes);
+//        for (DataDecl d : dataDecls) {
+//            processDataDecl(d, d.getDefType().getToken().getText());
+//        }
+//        return graph;
+//    }
+//
+//    public OccurrenceGraph buildFromDataDecl(List<DataDecl> dataDecls, List<SynTypeDecl>  synTypeDecls) {
+//        dataDecls.forEach(d -> datatypeNames.add(d.getDefType().getToken().getText()));
+//        synTypeDecls.forEach(d -> datatypeNames.add(d.getDefType().getToken().getText()));
+//        synTypeDecls.forEach(this::processSynTypes);
+//        for (DataDecl d : dataDecls) {
+//            processDataDecl(d, d.getDefType().getToken().getText());
+//        }
+//        return graph;
+//    }
+
+    public GraphBuilderResult buildFromTyConsEntity(List<TyConsEntity> dataDecls, List<TySynEntity> synTypeDecls) {
+        this.dataDecls.addAll(dataDecls);
+
+        for (TyConsEntity entity : dataDecls) {
+            datatypeNames.add(entity.getModule().getName() + "." + entity.getName());
         }
-        return graph;
+        for (TySynEntity entity : synTypeDecls) {
+            datatypeNames.add(entity.getModule().getName() + "." + entity.getName());
+        }
+
+        for (TySynEntity entity : synTypeDecls) {
+            processSynTypes(entity);
+        }
+
+        for (TyConsEntity entity : dataDecls) {
+            processDataDecl((DataDecl) entity.getValue(), entity.getModule().getName() + "." + entity.getName());
+        }
+
+        return new GraphBuilderResult(graph, this.dataDecls);
     }
 
-    public OccurrenceGraph buildFromDataDecl(List<DataDecl> dataDecls, List<SynTypeDecl>  synTypeDecls) {
-        dataDecls.forEach(d -> datatypeNames.add(d.getDefType().getToken().getText()));
-        synTypeDecls.forEach(d -> datatypeNames.add(d.getDefType().getToken().getText()));
-        synTypeDecls.forEach(this::processSynTypes);
-        for (DataDecl d : dataDecls) {
-            processDataDecl(d, d.getDefType().getToken().getText());
+    private record FunctionHeadAndParameters (HaskellObject head, List<HaskellObject> arguments) {}
+
+
+//    replaces flattenApp
+    private FunctionHeadAndParameters processApply (Apply function) {
+        List<HaskellObject> arguments = new ArrayList<>();
+        HaskellObject current = function;
+
+        while (current instanceof Apply apply) {
+            arguments.add(apply.getArgument());
+            current = apply.getFunction();
         }
-        return graph;
+
+//      reverse inplace the arguments list
+        int size = arguments.size();
+        for (int i = 0, j = size - 1; i < j; i++, j--) {
+            HaskellObject temp = arguments.get(i);
+            arguments.set(i, arguments.get(j));
+            arguments.set(j, temp);
+        }
+
+        return new FunctionHeadAndParameters(current, arguments);
     }
 
-    public OccurrenceGraph buildFromTyConsEntity(List<TyConsEntity> types) {
-        for (TyConsEntity entity : types) {
-            datatypeNames.add(entity.getName());
+    private Map<String, Integer> getParamIndex(Apply apply){
+        FunctionHeadAndParameters functionHeadAndParameters = processApply(apply);
+        List<HaskellObject> arguments = functionHeadAndParameters.arguments;
+        Map<String, Integer> paramIndex = new HashMap<>();
+        for (int i = 0; i < arguments.size(); i++) {
+            paramIndex.put(
+                    ((Var) arguments.get(i)).getSymbol().toString(),
+                    i
+            );
         }
-
-        for (TyConsEntity entity : types) {
-            processDataDecl((DataDecl) entity.getValue(), entity.getName());
-        }
-
-        return graph;
+        return paramIndex;
     }
 
-    private void processSynTypes(SynTypeDecl synTypeDecl) {
-        currentDef = synTypeDecl.getDefType().getToken().getText();
-        paramIndex = new HashMap<>();
+    private void processSynTypes(TySynEntity entity) {
+        String currentDef = entity.getModule().getName() + "." + entity.getName();
+        SynTypeDecl synTypeDecl = (SynTypeDecl) entity.getValue();
+        Map<String, Integer> paramIndex = new LinkedHashMap<>();
 
-        if  (synTypeDecl.getDefType() instanceof Apply apply) {
-            //collect vars from data declaration
-            List<HaskellObject> vars = new ArrayList<>();
-            var _ = flattenApp(apply, vars);
-
-            //add vars to paramIndex with innermost index 0
-            IntStream.range(0, vars.size())
-                    .forEach(index -> paramIndex.put(((Var) vars.get(index)).getSymbol().toString(), index));
+        if (synTypeDecl.getDefType() instanceof Apply apply) {
+            paramIndex = getParamIndex(apply);
         }
 
         graph.addNode(
@@ -87,27 +134,22 @@ public class GraphBuilder {
         );
 
         walkType(
-                synTypeDecl.getType(),
-                Occurrence.STRICT_POS,
-                new OccurrenceGraph.DefNode(currentDef)
+                synTypeDecl.getType()
+                , Occurrence.STRICT_POS
+                , new OccurrenceGraph.DefNode(currentDef)
+                , currentDef
+                , paramIndex
         );
 
     }
 
     private void processDataDecl(DataDecl dd, String name) {
         //reset
-        currentDef = name;
-        paramIndex = new LinkedHashMap<>();
+        String currentDef = name;
+        Map<String, Integer> paramIndex = new LinkedHashMap<>();
 
         if (dd.getDefType() instanceof Apply apply) {
-
-            //collect vars from data declaration
-            List<HaskellObject> vars = new ArrayList<>();
-            var _ = flattenApp(apply, vars);
-
-            //add vars to paramIndex with innermost index 0
-            IntStream.range(0, vars.size())
-                    .forEach(index -> paramIndex.put(((Var) vars.get(index)).getSymbol().toString(), index));
+            paramIndex = getParamIndex(apply);
         }
         //create node
         graph.addNode(
@@ -115,7 +157,7 @@ public class GraphBuilder {
         );
 
         for (DataCon ctor : dd.getDataCons()) {
-            processConstructor(ctor);
+            processConstructor(ctor, currentDef, paramIndex);
         }
 
     }
@@ -143,49 +185,65 @@ public class GraphBuilder {
         return current;
     }
 
-    private void processConstructor(DataCon ctor) {
+    private void processConstructor(DataCon ctor, String currentDef, Map<String, Integer> paramIndex) {
         // e.g. data List a = Nil | Cons a (List a)
         // => ctor = `Cons a (List a)`
         // => ctor.getTypes() -> ['a', '(List a)']
         for (var type : ctor.getTypes()) {
             walkType(
-                    type,
-                    Occurrence.STRICT_POS,
-                    new OccurrenceGraph.DefNode(currentDef)
+                    type
+                    , Occurrence.STRICT_POS
+                    , new OccurrenceGraph.DefNode(currentDef)
+                    , currentDef
+                    , paramIndex
             );
         }
     }
 
-    private void walkType(HaskellObject type, Occurrence pol, OccurrenceGraph.Node target) {
+    private void walkType(HaskellObject type, Occurrence pol, OccurrenceGraph.Node target, String currentDef, Map<String, Integer> paramIndex) {
         if (type instanceof Cons cons) {
             walkCons(cons, pol, target);
         } else if (type instanceof Var var) {
-            walkVar(var, pol, target);
+            walkVar(var, pol, target, currentDef, paramIndex);
         } else if (type instanceof Apply apply) {
-            walkApply(apply, pol, target);
+            walkApply(apply, pol, target, currentDef, paramIndex);
         }
     }
 
     // e.g. Foo = mkFoo Bar => cons -> `Bar`
     private void walkCons(Cons cons, Occurrence pol, OccurrenceGraph.Node target) {
-        String name = cons.getSymbol().toString();
+        String name = cons.getSymbol().getEntity().getModule().getName() + "." + cons.getSymbol().toString();
         if (datatypeNames.contains(name)) {
             graph.addEdge(
                     new OccurrenceGraph.DefNode(name),
                     target,
                     pol
             );
-        } else if (preludeTyCons != null && preludeTyCons.containsKey(name)) {
-            TyConsEntity entity = preludeTyCons.get(name);
-            if (entity.getValue() instanceof SynTypeDecl synTypeDecl) {
-                walkType(synTypeDecl.getType(), pol, target);
-            } else if (entity.getValue() instanceof DataDecl dataDecl) {
+//        } else if (preludeTyCons != null && preludeTyCons.containsKey(name)) {
+//            TyConsEntity entity = preludeTyCons.get(name);
+//            if (entity.getValue() instanceof SynTypeDecl synTypeDecl) {
+//                walkType(synTypeDecl.getType(), pol, target);
+//            } else if (entity.getValue() instanceof DataDecl dataDecl) {
+//                processDataDecl(dataDecl, name);
+//            }
+        } else {
+            datatypeNames.add(name);
+            HaskellDecl decl = (HaskellDecl) cons.getSymbol().getEntity().getValue();
+            if (decl instanceof DataDecl dataDecl) {
+                this.dataDecls.add((TyConsEntity) cons.getSymbol().getEntity());
                 processDataDecl(dataDecl, name);
+            } else if (decl instanceof SynTypeDecl synTypeDecl) {
+                processSynTypes((TySynEntity) cons.getSymbol().getEntity());
             }
+            graph.addEdge(
+                    new OccurrenceGraph.DefNode(name),
+                    target,
+                    pol
+            );
         }
     }
 
-    private void walkVar(Var var, Occurrence pol, OccurrenceGraph.Node target) {
+    private void walkVar(Var var, Occurrence pol, OccurrenceGraph.Node target, String currentDef, Map<String, Integer> paramIndex) {
         String name = var.getSymbol().toString();
         if (paramIndex.containsKey(name)) {
             int index = paramIndex.get(name);
@@ -198,18 +256,19 @@ public class GraphBuilder {
     }
 
 
-    private void walkApply(Apply apply, Occurrence pol, OccurrenceGraph.Node target) {
-        List<HaskellObject> args = new ArrayList<>();
-        var head = flattenApp(apply, args);
+    private void walkApply(Apply apply, Occurrence pol, OccurrenceGraph.Node target, String currentDef, Map<String, Integer> paramIndex) {
+
+        FunctionHeadAndParameters functionHeadAndParameters = processApply(apply);
+        HaskellObject head = functionHeadAndParameters.head;
+        List<HaskellObject> args = functionHeadAndParameters.arguments;
 
         if (head instanceof Cons cons) {
 
-            String name = cons.getSymbol().toString();
+            String name = cons.getSymbol().getEntity().getModule().getName() + "." + cons.getSymbol().toString();
 
             //check if arrow function
-            if (name.equals("->")) {
-                // System.out.println("WalkArrow called");
-                walkArrow(apply, pol, target);
+            if (name.equals("Prelude.->")) {
+                walkArrow(apply, pol, target, currentDef, paramIndex);
                 return;
             }
 
@@ -225,22 +284,22 @@ public class GraphBuilder {
             for (int i = 0; i < args.size(); i++) {
                 Occurrence argPol = pol.otimes(argPolarity(name));
                 var argTarget = argTarget(name, i, target);
-                walkType(args.get(i), argPol, argTarget);
+                walkType(args.get(i), argPol, argTarget, currentDef, paramIndex);
             }
         } else if (head instanceof Var var) {
             String name = var.getSymbol().toString();
-            walkType(head, pol, target);
+            walkType(head, pol, target, currentDef, paramIndex);
             if (paramIndex.containsKey(name)) {
                 int index = paramIndex.get(name);
                 target = new OccurrenceGraph.ArgNode(currentDef, index);
             }
             for (var a : args) {
-                walkType(a, pol.otimes(Occurrence.MIXED), target);
+                walkType(a, pol.otimes(Occurrence.MIXED), target, currentDef, paramIndex);
             }
         } else {
-            walkType(head, pol, target);
+            walkType(head, pol, target, currentDef, paramIndex);
             for (var a : args) {
-                walkType(a, pol.otimes(Occurrence.MIXED), target);
+                walkType(a, pol.otimes(Occurrence.MIXED), target, currentDef, paramIndex);
             }
         }
     }
@@ -262,12 +321,12 @@ public class GraphBuilder {
         return currentTarget;
     }
 
-    private void walkArrow(Apply apply, Occurrence pol, OccurrenceGraph.Node target) {
+    private void walkArrow(Apply apply, Occurrence pol, OccurrenceGraph.Node target, String currentDef, Map<String, Integer> paramIndex) {
         var codomain = apply.getArgument();
         if (apply.getFunction() instanceof Apply apply2) {
             var domain = apply2.getArgument();
-            walkType(domain, pol.otimes(Occurrence.JUST_NEG), target);
-            walkType(codomain, pol, target);
+            walkType(domain, pol.otimes(Occurrence.JUST_NEG), target, currentDef, paramIndex);
+            walkType(codomain, pol, target, currentDef, paramIndex);
         } else {
             //should not happen
         }

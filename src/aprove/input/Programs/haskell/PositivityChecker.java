@@ -22,10 +22,13 @@ public class PositivityChecker {
     private Result computeResult(Modules mods) {
 
         final Map<String, Module> modMap = mods.getModMap();
-        final List<HaskellDecl> decls = new ArrayList<>(List.of());
+        final List<HaskellEntity> decls = new ArrayList<>(List.of());
 
         for (var module : modMap.values()) {
-            decls.addAll(module.getDecls());
+            if (module.getName().equals("Prelude")) {
+              continue;
+            }
+            decls.addAll(module.getNewExpEntities());
         }
 // may be helpful to have the prelude types in the graph, but not for now not consistent (e.g. Nat is not exported therefore Int not handled correctly)
 //        final Set<HaskellEntity> entities = mods.getPrelude().getExpEntities();
@@ -36,28 +39,47 @@ public class PositivityChecker {
 //            }
 //        }
 
-        final List<DataDecl> dataDecl = decls.stream()
-                .filter(decl -> decl instanceof DataDecl)
-                .map(decl -> (DataDecl) decl)
-                .toList();
+        final List<TyConsEntity> dataDecl = new ArrayList<>();
+        final List<TySynEntity> synTypeDecls = new ArrayList<>();
+        for (HaskellEntity decl : decls) {
+            if (decl instanceof TyConsEntity data) {
+                dataDecl.add(data);
+            } else if (decl instanceof TySynEntity synType) {
+                synTypeDecls.add(synType);
+            }
+        }
 
-        final List<SynTypeDecl> synTypeDecls = decls.stream()
-                .filter(decl -> decl instanceof SynTypeDecl)
-                .map(decl -> (SynTypeDecl) decl)
-                .toList();
+        GraphBuilder testBuilder = new GraphBuilder();
+        GraphBuilder.GraphBuilderResult graphBuilderResult = testBuilder.buildFromTyConsEntity(dataDecl, synTypeDecls);
+        OccurrenceGraph graph = graphBuilderResult.graph();
+        dataDecl.clear();
+        dataDecl.addAll(graphBuilderResult.dataDecls());
+        System.out.println("Occurrence graph:");
+        System.out.println(graph.toStringWithoutUnused());
 
 
-        GraphBuilder builder = new GraphBuilder();
-        OccurrenceGraph graph = builder.buildFromDataDecl(dataDecl, synTypeDecls);
+//        final List<DataDecl> dataDecl = decls.stream()
+//                .filter(decl -> decl instanceof DataDecl)
+//                .map(decl -> (DataDecl) decl)
+//                .toList();
+//
+//        final List<SynTypeDecl> synTypeDecls = decls.stream()
+//                .filter(decl -> decl instanceof SynTypeDecl)
+//                .map(decl -> (SynTypeDecl) decl)
+//                .toList();
+
+
+//        GraphBuilder builder = new GraphBuilder();
+//        OccurrenceGraph graph = builder.buildFromDataDecl(dataDecl, synTypeDecls);
 //        OccurrenceGraph graph = builder.buildFromDataDecl(dataDecl, synTypeDecls, preludeTyCons);
 
         List<Violation> violations = new ArrayList<>();
         Map<String, Occurrence> selfLoops = new LinkedHashMap<>();
 
-        for (DataDecl d : dataDecl) {
-            var defNode = new OccurrenceGraph.DefNode(typeName(d));
+        for (TyConsEntity d : dataDecl) {
+            var defNode = new OccurrenceGraph.DefNode(d.getModule().getName() + "." + d.getName());
             var loop = graph.transitiveOccurrence(defNode, defNode);
-            selfLoops.put(typeName(d), loop);
+            selfLoops.put(d.getModule().getName() + "." + d.getName(), loop);
 
             if (loop.isNotStrictlyPositive()) {
                 violations.add(new Violation(d, loop));
@@ -124,17 +146,23 @@ public class PositivityChecker {
         System.out.println();
     }
 
-    public record Violation(DataDecl datatype, Occurrence loopOccurrence) {
+    public record Violation(TyConsEntity datatype, Occurrence loopOccurrence) {
         @Override
         public String toString() {
 //            return typeName(datatype) + " is not strictly positive" +
 //                    " (self-loop polarity = " + loopOccurrence.toString() + ")";
-            return typeName(datatype) + " at line " + datatype.getToken().getLine() + " is not strictly positive" +
-                    " (self-loop polarity = " + loopOccurrence.toString() + ")";
+
+            if (datatype.getModule().getName().equals("Main")) {
+                return datatype.getName() + " at line " + datatype.getValue().getToken().getLine() + " is not strictly positive" +
+                        " (self-loop polarity = " + loopOccurrence.toString() + ")";
+
+            }
+            return datatype.getName() + " in module " + datatype.getModule().getName() + " is not strictly positive" + " (self-loop polarity = " + loopOccurrence.toString() + ")";
+
         }
 
         public DataDecl decl() {
-            return datatype;
+            return (DataDecl) datatype.getValue();
         }
 
         public Occurrence occ() {
