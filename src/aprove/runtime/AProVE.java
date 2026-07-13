@@ -196,17 +196,6 @@ public class AProVE implements ProveRunner {
             final PositivityChecker checker = new PositivityChecker();
             checker.checkForIOResult(((HaskellProgram) this.typedInput.getInput()).getModules());
         }
-        throw new HaskellParserCheck("Passed");
-//        if (forcedHandling != null) {
-//            this.forceHandlingMode(forcedHandling);
-//        }
-//        final PublicAnnotator annotator = new DefaultAnnotator();
-//        final AnnotatedInput annotate = annotator.annotate(this.typedInput);
-//        final ObligationFactory of = new MetaObligationFactory();
-//        final Pair<ObligationNode, List<BasicObligationNode>> rootAndPositions = of.getRootAndPositions(annotate);
-//        Main.firstObligation = false;
-//        this.root = rootAndPositions.x;
-//        this.positions = rootAndPositions.y;
     }
 
 }
